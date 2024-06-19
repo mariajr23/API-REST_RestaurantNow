@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.0/css/bootstrap.min.css">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>RestaurantNow</title>
+    <link rel="stylesheet" href="/css/estilos.css">
+    <link rel="icon" href="/favicon.png"/>
+  </head>
+  <body class="text-center">
+    <nav class="container d-flex flex-wrap justify-content-center py-3 mb-4 text-dark border-bottom">
+      <a href="/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-decoration-none text-dark">
+        <span class="fs-4">RestaurantNow</span>
+      </a>
+      <ul class="nav nav-pills">
+        <li class="nav-item"><a href="/" class="nav-link text-dark" aria-current="page">Home</a></li>
+        <li class="nav-item"><a href="/login" class="nav-link text-dark">Iniciar Sesion</a></li>
+        <li class="nav-item"><a href="/registro" class="nav-link text-dark">Registrarse</a></li>
+      </ul>
+    </nav>
+    <main class="login">
+      <br><br>
+      <form class="form-signin" action="/iniciarsesion" method="POST">
+        <img class="mb-4" src="/images/logo.png" alt="logo" width="80" height="auto">
+        <br>
+        <h1 class="h3 mb-3 fw-normal">Inicie sesion</h1>
+        <br>
+        <div class="form-floating">
+          <input type="email" class="form-control" id="floatingInput" placeholder="name@ejemplo.com" name="email">
+          <label for="floatingInput">Email</label>
+        </div>
+        <br>
+        <div class="form-floating">
+          <input type="password" class="form-control" id="floatingPassword" placeholder="Password" name="contrasena">
+          <label for="floatingPassword">Contraseña</label>
+        </div>
+        <br>
+        <div class="checkbox mb-3">
+          <label>
+            <input type="checkbox" value="remember-me"> Recordar
+          </label>
+          <p class="small fw-bold mt-2 pt-1 mb-0">No tienes una cuenta? <a href="/registrar" class="link-danger">Registrar</a></p>
+        </div>
+        <button class="btn btn-dark my-2 btn-bg-black" type="submit">Iniciar Sesion</button>
+        <br><br>
+      </form>
+    </main>
+    <footer class="d-flex flex-wrap justify-content-between align-items-center py-3 my-4 border-top">
+      <div class="col-md-4 d-flex items-center">
+        <a href="/" class="mb-3 me-2 mb-md-0 text-muted text-decoration-none lh-1">
+          <img class="mb-4" src="/images/Logo.jpg" alt="Logo" width="50%" height="50%">
+        </a>
+        <span class="text-muted">&copy; 2023 RestaurantNow</span>
+      </div>
+    </footer>
+  </body>
+</html>

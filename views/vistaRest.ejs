@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.0/css/bootstrap.min.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, minimum-scale=1.0">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+  <title>RestaurantNow</title>
+  <link rel="stylesheet" href="css/bootstrap.min.css">
+  <link rel="stylesheet" href="css/estilos.css">
+  <link rel="icon" href="favicon.png"/>
+</head>
+<body>
+  <nav class="container d-flex flex-wrap justify-content-center py-3 mb-4 text-dark border-bottom">
+    <a href="/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-decoration-none text-dark">
+      <svg class="bi me-2" width="40" height="32"><use xlink:href="/"/></svg>
+      <span class="fs-4">RestaurantNow</span>
+    </a>
+    <ul class="nav nav-pills">
+      <li class="nav-item"><a href="/" class="nav-link text-dark" aria-current="page">Home</a></li>
+      <li class="nav-item"><a href="/login" class="nav-link text-dark">Iniciar Sesión</a></li>
+      <li class="nav-item"><a href="/registro" class="nav-link text-dark">Registrarse</a></li>
+    </ul>
+  </nav>
+
+  <main>
+    <section>
+      <% restaurants.forEach((restaurant) => { %>
+      <div class="p-5 text-center bg-image rounded-3" style="background-image: url('https://mdbcdn.b-cdn.net/img/new/slides/041.webp'); height: 25%;">
+        <div class="mask" style="background-color: rgba(0, 0, 0, 0.6);">
+          <div class="d-flex justify-content-center align-items-center h-100">
+            <div class="text-white">
+              <h1 class="mb-3"><%= restaurant.nombre %></h1>
+              <h4 class="mb-3"><%= restaurant.descripcion %></h4>
+            </div>
+          </div>
+        </div>
+      </div>
+      <% }) %>
+    </section>
+  
+    <section>
+      <h2>Platos Disponibles</h2>
+      <form action="/checkout" method="POST">
+        <ul class="list-group">
+          <% platos.forEach((plato) => { %>
+            <li class="list-group-item">
+              <input class="form-check-input me-1" type="checkbox" name="platosSeleccionados" value="<%= plato.id_plato %>" aria-label="...">
+              <%= plato.nombre_plato %> - Precio: $<%= plato.precio.toFixed(2) %>
+            </li>
+          <% }) %>
+        </ul>
+        <div id="precio-final">Precio Final: 0.00€</div>
+
+        <label for="fecha">Fecha:</label>
+        <input type="date" name="fecha" id="fecha" required>
+
+        <label for="hora">Hora:</label>
+        <select name="hora" id="hora" required>
+          <% horarios.forEach((horario) => { %>
+            <option value="<%= horario.id_horario %>" <%= horario.disponible === 0 ? "" : "disabled" %>>
+              <%= horario.hora %> <%= horario.disponible === 0 ? "" : "(Reservado)" %>
+            </option>
+          <% }) %>
+        </select>
+        
+      
+        <input type="hidden" name="id_restaurante" value="<%= restaurants[0].id_restaurante %>">
+        <button type="submit" class="btn btn-primary">Reservar</button>
+      </form>
+    </section>
+  </main>
+
+    
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const checkboxes = document.querySelectorAll('.form-check-input');
+      checkboxes.forEach(function(checkbox) {
+        checkbox.addEventListener('change', function() {
+          let precioTotal = 0;
+          checkboxes.forEach(function(checkbox) {
+            if (checkbox.checked) {
+              precioTotal += parseFloat(checkbox.parentElement.textContent.trim().split('Precio: $')[1]);
+            }
+          });
+          document.getElementById('precio-final').textContent = `Precio Final: $${precioTotal.toFixed(2)}`;
+        });
+      });
+    
+      document.getElementById('checkout-btn').addEventListener('click', function() {
+        const checkboxes = document.querySelectorAll('.form-check-input:checked');
+        const selectedPlatos = Array.from(checkboxes).map(checkbox => checkbox.value);
+        console.log(selectedPlatos); 
+      });
+    });
+    </script>
+
+  <footer>
+    <article class="footer">
+      <footer class="d-flex flex-wrap justify-content-between align-items-center py-3 my-4 border-top">
+        <article class="col-md-4 d-flex items-center">
+          <a href="/" class="mb-3 me-2 mb-md-0 text-muted text-decoration-none lh-1">
+            <img class="mb-4" src="./Logo.jpg" alt="" width="50%" height="50%">
+          </a>
+          <span class="text-muted">&copy; 2023 RestaurantNow</span>
+        </article>
+        <ul class="nav col-md-4 justify-content-end list-unstyled d-flex">
+          <li class="ms-3"><a class="text-muted" href="https://www.instagram.com/you_drive12/"><svg class="bi" width="24" height="24"><use xlink:href="#instagram"/></svg></a></li>
+          <li class="ms-3"><a class="text-muted" href="https://www.facebook.com/youdrive2/?show_switched_toast=0&show_invite_to_follow=0&show_switched_tooltip=0&show_podcast_settings=0&show_community_transition=0&show_community_review_changes=0&show_follower_visibility_disclosure=0"><svg class="bi" width="24" height="24"><use xlink:href="#facebook"/></svg></a></li>
+        </ul>
+      </footer>
+    </article>
+  </footer>
+
+  <script src="../assets/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

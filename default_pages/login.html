@@ -1,0 +1,205 @@
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.0/css/bootstrap.min.css">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>RestaurantNow</title>
+    <link rel="stylesheet" href="./estilos.css">
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="icon" href="favicon.png"/>
+
+
+        
+
+<link href="../assets/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<style>
+  .bd-placeholder-img {
+    font-size: 1.125rem;
+    text-anchor: middle;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    user-select: none;
+  }
+
+  @media (min-width: 768px) {
+    .bd-placeholder-img-lg {
+      font-size: 3.5rem;
+    }
+  }
+
+  .b-example-divider {
+    width: 100%;
+    height: 3rem;
+    background-color: rgba(0, 0, 0, .1);
+    border: solid rgba(0, 0, 0, .15);
+    border-width: 1px 0;
+    box-shadow: inset 0 .5em 1.5em rgba(0, 0, 0, .1), inset 0 .125em .5em rgba(0, 0, 0, .15);
+  }
+
+  .b-example-vr {
+    flex-shrink: 0;
+    width: 1.5rem;
+    height: 100vh;
+  }
+
+  .bi {
+    vertical-align: -.125em;
+    fill: currentColor;
+  }
+
+  .nav-scroller {
+    position: relative;
+    z-index: 2;
+    height: 2.75rem;
+    overflow-y: hidden;
+  }
+
+  .nav-scroller .nav {
+    display: flex;
+    flex-wrap: nowrap;
+    padding-bottom: 1rem;
+    margin-top: -1px;
+    overflow-x: auto;
+    text-align: center;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .btn-bd-primary {
+    --bd-violet-bg: #712cf9;
+    --bd-violet-rgb: 112.520718, 44.062154, 249.437846;
+
+    --bs-btn-font-weight: 600;
+    --bs-btn-color: var(--bs-white);
+    --bs-btn-bg: var(--bd-violet-bg);
+    --bs-btn-border-color: var(--bd-violet-bg);
+    --bs-btn-hover-color: var(--bs-white);
+    --bs-btn-hover-bg: #6528e0;
+    --bs-btn-hover-border-color: #6528e0;
+    --bs-btn-focus-shadow-rgb: var(--bd-violet-rgb);
+    --bs-btn-active-color: var(--bs-btn-hover-color);
+    --bs-btn-active-bg: #5a23c8;
+    --bs-btn-active-border-color: #5a23c8;
+  }
+  .bd-mode-toggle {
+    z-index: 1500;
+  }
+</style>
+<script type="module">
+
+  // Import the functions you need from the SDKs you need
+
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-analytics.js";
+
+  // TODO: Add SDKs for Firebase products that you want to use
+
+  // https://firebase.google.com/docs/web/setup#available-libraries
+
+
+  // Your web app's Firebase configuration
+
+  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+
+  const firebaseConfig = {
+
+    apiKey: "AIzaSyAS-qdr6Ig44QWBjB2wB3PrIBhP7I5co08",
+
+    authDomain: "tfg-rn.firebaseapp.com",
+
+    projectId: "tfg-rn",
+
+    storageBucket: "tfg-rn.appspot.com",
+
+    messagingSenderId: "139658458882",
+
+    appId: "1:139658458882:web:398fac6180b438ff65b41b",
+
+    measurementId: "G-W807191H37"
+
+  };
+
+
+  // Initialize Firebase
+
+  const app = initializeApp(firebaseConfig);
+
+  const analytics = getAnalytics(app);
+
+</script>
+
+  </head>
+
+  <body class="text-center">
+  <nav class="container d-flex flex-wrap justify-content-center py-3 mb-4 text-dark border-bottom">
+  <a href="index.php" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-decoration-none text-dark">
+    <svg class="bi me-2" width="40" height="32"><use xlink:href="index.php"/></svg>
+    <span class="fs-4">RestaurantNow</span>
+  </a>
+
+  
+    <ul class="nav nav-pills">
+      <li class="nav-item"><a href="index.php" class="nav-link text-dark" aria-current="page">Home</a></li>
+      <li class="nav-item"><a href="adminUser.php" class="nav-link text-dark">Perfil</a></li>
+      <li class="nav-item"><a href="logout.php" class="nav-link text-dark">LogOut</a></li>
+    </ul>
+  
+    <ul class="nav nav-pills">
+      <li class="nav-item"><a href="index.php" class="nav-link text-dark" aria-current="page">Home</a></li>
+      <li class="nav-item"><a href="login.php" class="nav-link text-dark">Iniciar Sesion</a></li>
+      <li class="nav-item"><a href="registrar.php" class="nav-link text-dark">Registrarse</a></li>
+    </ul>
+  
+</nav>
+<main class="login">
+  <br><br>
+  <form class="form-signin" action="iniciarsesion.php" method="POST">
+    <img class="mb-4" src="./images/logo.png" alt="logo" width="80" height="auto">
+    <br>
+    <h1 class="h3 mb-3 fw-normal">Inicie sesion</h1>
+    <br>
+    <article class="form-floating">
+      <input type="email" class="form-control" id="floatingInput" placeholder="name@ejemplo.com" name="email">
+      <label for="floatingInput">Email</label>
+    </article>
+    <br>
+    <article class="form-floating">
+      <input type="password" class="form-control" id="floatingPassword" placeholder="Password" name="contrasena">
+      <label for="floatingPassword">Contraseña</label>
+    </article>
+    <br>
+    <article class="checkbox mb-3">
+      <label>
+        <input type="checkbox" value="remember-me"> Recordar
+      </label>
+            <p class="small fw-bold mt-2 pt-1 mb-0">No tienes una cuenta? <a href="./Registro.php"
+                class="link-danger">Registrar</a></p>
+    </article>
+    <button class="btn btn-dark my-2 btn-bg-black" type="submit">Iniciar Sesion</button>
+    <br><br>
+  </form>
+
+</main>
+
+
+<article class="footer">
+    <footer class="d-flex flex-wrap justify-content-between align-items-center py-3 my-4 border-top">
+    <article class="col-md-4 d-flex items-center">
+        <a href="./Index.php" class="mb-3 me-2 mb-md-0 text-muted text-decoration-none lh-1">
+        <img class="mb-4" src="./Logo.jpg" alt="" width="50%" height="50%">
+        </a>
+        <span class="text-muted">&copy; 2023 RestaurantNow</span>
+    </article>
+    </footer>
+</article>
+  </body>
+</html>
+
+
+
+

@@ -1,0 +1,24 @@
+{
+  "name": "api-rest_restaurantnow",
+  "version": "1.0.0",
+  "description": "TFG Maria Jimenez Rojo 2024",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Maria Jimenez Rojo",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mariajr23/TFG_MJR24.git"
+  },
+  "dependencies": {
+    "bootstrap": "^5.3.3",
+    "ejs": "^3.1.10",
+    "express": "^4.19.2",
+    "express-session": "^1.18.0",
+    "mysql": "^2.18.1",
+    "mysql2": "^3.9.7",
+    "nodemon": "^3.1.0"
+  }
+}
