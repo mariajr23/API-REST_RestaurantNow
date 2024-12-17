@@ -1,50 +1,49 @@
-const express = require("express");
+const express = require('express');
 const app = express();
-const path = require("path");
-const router = require("./router");
-
-app.set("view engine", "ejs");
-app.set("views", path.join(__dirname, "views")); 
-
-app.use(express.urlencoded({ extended: false }));
-
-app.use(express.static(path.join(__dirname, "public")));
-
 const session = require('express-session');
+const cookieParser = require('cookie-parser');
+const jwt = require('jsonwebtoken');
+const path = require('path');
+const route = require('./routes/router');
+const { authenticate } = require('./middleware/auth');
+
+app.set('view engine', 'ejs');
+
+// Configura la carpeta de vistas
+app.set('views', path.join(__dirname, 'views')); 
+// Configuración de middlewares
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+app.use(cookieParser());
 app.use(session({
-  secret: 'your-secret-key',
+  secret: 'tu_secreto',
   resave: false,
-  saveUninitialized: true
+  saveUninitialized: false,
 }));
 
-
-
+// Middleware para manejar la sesión y usuario
 app.use((req, res, next) => {
-  if (!req.session.user) {
-    req.session.user = null; // o un objeto de usuario simulado
+  const token = req.cookies.token;
+  if (token) {
+    jwt.verify(token, 'tu_clave_secreta', (err, decoded) => {
+      if (err) {
+        req.user = null;
+      } else {
+        req.user = decoded;
+      }
+    });
+  } else {
+    req.user = null;
   }
+  res.locals.user = req.user;
   next();
 });
 
-app.use(express.static('img'));
+// Usar las rutas
+app.use('/', route);
 
-app.use(express.json()); 
-
-
-app.use("/", require("./router"));
-
-//app.use(express.static(path.join(__dirname, 'client/build')));
-
-app.use(express.json());
-
-app.use("/", router);
-
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'client/build', 'index.ejs'));
-});
-
-
-app.listen(3000, () => {
-  console.clear();
-  console.log("El servidor está en el puerto 3000 y esta escuchando");
+// Iniciar el servidor
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Servidor corriendo en el puerto ${PORT}`);
 });

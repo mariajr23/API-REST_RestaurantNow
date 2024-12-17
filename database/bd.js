@@ -28,5 +28,11 @@ conexion.connect((error)=>{
 });
 
 
+function buscarRestaurantes(query, callback) {
+  const sql = 'SELECT * FROM restaurantes WHERE nombre LIKE ?';
+  conexion.query(sql, [`%${query}%`], callback);
+}
 
-module.exports = conexion;
+
+
+module.exports = { conexion, buscarRestaurantes };

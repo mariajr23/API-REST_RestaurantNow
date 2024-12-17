@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mis Pedidos</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.0/css/bootstrap.min.css">
+</head>
+<body>
+  <!-- Navegación y demás contenido -->
+  <div class="container">
+    <h2>Mis Pedidos</h2>
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Nombre Restaurante</th>
+          <th>Fecha</th>
+          <th>Hora</th>
+          <th>Estado</th>
+          <th>Precio Total</th>
+        </tr>
+      </thead>
+      <tbody id="reservationsTableBody">
+        <% if (reservas && reservas.length > 0) { %>
+          <% reservas.forEach(reserva => { %>
+            <tr>
+              <td><%= reserva.nombre_restaurante %></td>
+              <td><%= reserva.fecha %></td>
+              <td><%= reserva.hora %></td>
+              <td><%= reserva.estado %></td>
+              <td>$<%= reserva.precio_total.toFixed(2) %></td>
+            </tr>
+          <% }); %>
+        <% } else { %>
+          <tr>
+            <td colspan="5" class="text-center">No tienes reservas.</td>
+          </tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+</body>
+</html>

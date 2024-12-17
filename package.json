@@ -13,12 +13,17 @@
     "url": "https://github.com/mariajr23/TFG_MJR24.git"
   },
   "dependencies": {
+    "bcrypt": "^5.1.1",
     "bootstrap": "^5.3.3",
+    "cookie-parser": "^1.4.6",
+    "dotenv": "^16.4.5",
     "ejs": "^3.1.10",
     "express": "^4.19.2",
     "express-session": "^1.18.0",
+    "jsonwebtoken": "^9.0.2",
     "mysql": "^2.18.1",
     "mysql2": "^3.9.7",
+    "nodemailer": "^6.9.15",
     "nodemon": "^3.1.0"
   }
 }

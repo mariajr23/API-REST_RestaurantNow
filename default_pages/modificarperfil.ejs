@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="es">
+  <script>
+    // Obtener el botón y el formulario por su ID
+    var boton = document.getElementById('mostrarFormulario');
+    var formulario = document.getElementById('formulario');
+  
+    // Agregar un evento al botón para mostrar el formulario
+    boton.addEventListener('click', function() {
+      formulario.style.display = 'block';
+    });
+  </script>
+  
+<head>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.0/css/bootstrap.min.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, minimum-scale=1.0">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+  <title>RestaurantNow</title>
+  <link rel="stylesheet" href="/css/estilos.css">
+  <link rel="icon" href="/favicon.png"/>
+</head>
+<body class="text-center">
+  <nav class="container d-flex flex-wrap justify-content-center py-3 mb-4 text-dark border-bottom">
+    <a href="/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-decoration-none text-dark">
+      <span class="fs-4">RestaurantNow</span>
+    </a>
+    <ul class="nav nav-pills">
+      <li class="nav-item"><a href="/restaurantes" class="nav-link text-dark" aria-current="page">Restaurantes</a></li>
+      <% if (!user) { %>
+        <li class="nav-item"><a href="/login" class="nav-link text-dark">Iniciar Sesión</a></li>
+        <li class="nav-item"><a href="/registro" class="nav-link text-dark">Registrarse</a></li>
+      <% } else { %>
+        <li class="nav-item"><a href="/perfil" class="nav-link text-dark">Perfil</a></li>
+        <li class="nav-item"><a href="/mis-pedidos" class="nav-link text-dark">Mis Pedidos</a></li>
+        <li class="nav-item"><a href="/logout" class="nav-link text-dark">Cerrar Sesión</a></li>
+      <% } %>
+    </ul>
+  </nav>
+
+    <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+      <!--<section class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">Dashboard</h1>
+        <article class="btn-toolbar mb-2 mb-md-0">
+          <article class="btn-group me-2">
+            <button type="button" class="btn btn-sm btn-outline-secondary">Share</button>
+            <button type="button" class="btn btn-sm btn-outline-secondary">Export</button>
+          </article>
+          <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle">
+            <span data-feather="calendar" class="align-text-bottom"></span>
+            This week
+          </button>
+        </article>
+      </section>
+
+      <canvas class="my-4 w-100" id="myChart" width="900" height="380"></canvas>-->
+      <br>
+      <button class="btn btn-dark my-2 btn-bg-black" id="mostrarFormulario">Mostrar formulario</button>
+      <form id="formulario" class="form-signin container" id="oculto" action="modificar.php" method="POST">
+        <br>
+        <h1 class="h3 mb-3 fw-normal">Modificar perfil</h1>
+        <br>
+        <article class="form-floating">
+            <input type="email" class="form-control" id="floatingInput" placeholder="" name="email">
+            <label for="floatingInput">Nombre</label>
+        </article>
+        <br>
+        <article class="form-floating">
+            <input type="password" class="form-control" id="floatingPassword" placeholder="Password" name="contrasena">
+            <label for="floatingPassword">Email</label>
+        </article>
+        <br>
+        <article class="form-floating">
+            <input type="email" class="form-control" id="floatingInput" placeholder="" name="email">
+            <label for="floatingInput">Contraseña</label>
+        </article>
+        <br>
+        <article class="form-floating">
+            <input type="password" class="form-control" id="floatingPassword" placeholder="Password" name="contrasena">
+            <label for="floatingPassword">Telefono</label>
+        </article>
+        <br>
+        <button class="btn btn-dark my-2 btn-bg-black" type="submit">Modificar Informacion</button>
+        <br><br>
+    </form>
+
+        </main>
+    </section>
+</section>
+<script src="javascript.js"></script>
+
+
+  <script src="./js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/feather-icons@4.28.0/dist/feather.min.js" integrity="sha384-uO3SXW5IuS1ZpFPKugNNWqTZRRglnUJK6UAZ/gxOX80nxEkN9NcGZTftn6RzhGWE" crossorigin="anonymous"></script><script src="https://cdn.jsdelivr.net/npm/chart.js@4.2.1/dist/chart.umd.min.js" integrity="sha384-gdQErvCNWvHQZj6XZM0dNsAoY4v+j5P1XDpNkcM3HJG1Yx04ecqIHk7+4VBOCHOG" crossorigin="anonymous"></script><script src="dashboard.js"></script>
+  </body>
+</html>
+

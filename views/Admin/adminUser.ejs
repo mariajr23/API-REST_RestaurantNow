@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.0/css/bootstrap.min.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, minimum-scale=1.0">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+  <title>Admin Dashboard - Usuarios</title>
+  <link rel="stylesheet" href="/css/estilos.css">
+  <link rel="icon" href="/favicon.png"/>
+  <style>
+    .sidebar {
+      height: 100vh;
+      background-color: #f8f9fa;
+      padding: 20px;
+      position: fixed;
+      width: 250px;
+      top: 0;
+      left: 0;
+    }
+    .main-content {
+      margin-left: 250px;
+      padding: 20px;
+    }
+    .dashboard-card {
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <h4>Admin Menu</h4>
+    <ul class="nav flex-column">
+      <li class="nav-item">
+        <a class="nav-link" href="/admin/restaurantes-pending">Aceptar Restaurantes</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="/admin/adminUser">Gestionar Usuarios</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="/admin/admin-reservations">Ver Reservas</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="/admin/adminRest">Ver Restaurantes</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="/user/perfil">Perfil</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="/logout">Cerrar Sesión</a>
+      </li>
+    </ul>
+  </nav>
+  <div class="main-content">
+    <main class="container">
+      <br>
+      <h2>Usuarios</h2>
+      <section class="table-responsive">
+        <table class="table table-striped table-hover table-sm">
+          <thead class="thead-dark">
+            <tr>
+              <th scope="col">ID</th>
+              <th scope="col">Nombre</th>
+              <th scope="col">Apellido</th>
+              <th scope="col">Email</th>
+              <th scope="col">Teléfono</th>
+              <th scope="col">Acción</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% usuarios.forEach(usuario => { %>
+              <tr>
+                <td><%= usuario.id_usuario %></td>
+                <td><%= usuario.nombre %></td>
+                <td><%= usuario.apellido %></td>
+                <td><%= usuario.email %></td>
+                <td><%= usuario.telefono %></td>
+                <td>
+                  <!-- Botón para eliminar el usuario -->
+                  <form action="/eliminarUsuario/<%= usuario.id_usuario %>" method="POST" style="display:inline;">
+                    <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
+                  </form>
+                </td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </section>
+    </main>
+  </div>
+
+  <script src="./js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/feather-icons@4.28.0/dist/feather.min.js" integrity="sha384-uO3SXW5IuS1ZpFPKugNNWqTZRRglnUJK6UAZ/gxOX80nxEkN9NcGZTftn6RzhGWE" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.2.1/dist/chart.umd.min.js" integrity="sha384-gdQErvCNWvHQZj6XZM0dNsAoY4v+j5P1XDpNkcM3HJG1Yx04ecqIHk7+4VBOCHOG" crossorigin="anonymous"></script>
+  <script src="dashboard.js"></script>
+</body>
+</html>

@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.0/css/bootstrap.min.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, minimum-scale=1.0">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+  <title>RestaurantNow</title>
+  <link rel="stylesheet" href="/css/estilos.css">
+  <link rel="icon" href="/favicon.png"/>
+  <style>
+    
+    body {
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background-color: #f8f9fa; 
+    }
+
+    .denied-card {
+      padding: 40px;
+      background-color: #e9ecef;
+      border-radius: 8px;
+      text-align: center;
+      box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); 
+    }
+
+    .denied-card h1 {
+      margin-bottom: 20px;
+    }
+
+    .denied-card p {
+      margin-bottom: 30px;
+    }
+
+ </style>
+</head>
+<body class="text-center">
+  <nav class="container d-flex flex-wrap justify-content-center py-3 mb-4 text-dark border-bottom">
+    <a href="/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-decoration-none text-dark">
+      <span class="fs-4">RestaurantNow</span>
+    </a>
+    <ul class="nav nav-pills">
+      <li class="nav-item"><a href="/restaurantes" class="nav-link text-dark" aria-current="page">Restaurantes</a></li>
+      <% if (!user) { %>
+        <li class="nav-item"><a href="/login" class="nav-link text-dark">Iniciar Sesión</a></li>
+        <li class="nav-item"><a href="/registro" class="nav-link text-dark">Registrarse</a></li>
+      <% } else { %>
+        <li class="nav-item"><a href="/perfil" class="nav-link text-dark">Perfil</a></li>
+        <li class="nav-item"><a href="/mis-pedidos" class="nav-link text-dark">Mis Pedidos</a></li>
+        <li class="nav-item"><a href="/logout" class="nav-link text-dark">Cerrar Sesión</a></li>
+      <% } %>
+    </ul>
+  </nav>
+  <main>
+    <div class="denied-card">
+        <h1>403 - Acceso no autorizado</h1>
+        <p>No tienes permiso para acceder a esta página.</p>
+        <a href="/login" class="btn btn-dark btn-lg">Iniciar sesión</a>
+    </div>
+  </main>
+</body>
+</html>

@@ -6,24 +6,66 @@
   <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, minimum-scale=1.0">
   <meta http-equiv="content-type" content="text/html; charset=utf-8" />
   <title>RestaurantNow</title>
-  <link rel="stylesheet" href="css/bootstrap.min.css">
-  <link rel="stylesheet" href="css/estilos.css">
-  <link rel="icon" href="favicon.png"/>
+  <link rel="stylesheet" href="/css/estilos.css">
+  <link rel="icon" href="/favicon.png"/>
+
+  <style>
+    .custom-card {
+      border: 1px solid #e0e0e0;
+      border-radius: 10px;
+      background-color: #f8f9fa;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+      margin-top: 20px;
+    }
+    .custom-card h5 {
+      color: #495057;
+      margin-bottom: 15px;
+    }
+    .form-control {
+      border-radius: 5px;
+    }
+    .custom-card .btn {
+      background-color: #007bff;
+      border-color: #007bff;
+      border-radius: 5px;
+      padding: 10px 20px;
+    }
+    .card-plato {
+      margin-bottom: 20px;
+    }
+    .hidden {
+      display: none;
+    }
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+    }
+    .card-plato {
+      flex: 1 0 30%;
+      margin: 15px;
+    }
+  </style>
 </head>
-<body>
+<body class="text-center">
   <nav class="container d-flex flex-wrap justify-content-center py-3 mb-4 text-dark border-bottom">
     <a href="/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-decoration-none text-dark">
-      <svg class="bi me-2" width="40" height="32"><use xlink:href="/"/></svg>
       <span class="fs-4">RestaurantNow</span>
     </a>
     <ul class="nav nav-pills">
-      <li class="nav-item"><a href="/" class="nav-link text-dark" aria-current="page">Home</a></li>
-      <li class="nav-item"><a href="/login" class="nav-link text-dark">Iniciar Sesión</a></li>
-      <li class="nav-item"><a href="/registro" class="nav-link text-dark">Registrarse</a></li>
+      <li class="nav-item"><a href="/restaurantes" class="nav-link text-dark" aria-current="page">Restaurantes</a></li>
+      <% if (!user) { %>
+        <li class="nav-item"><a href="/login" class="nav-link text-dark">Iniciar Sesión</a></li>
+        <li class="nav-item"><a href="/registro" class="nav-link text-dark">Registrarse</a></li>
+      <% } else { %>
+        <li class="nav-item"><a href="/user/perfil" class="nav-link text-dark">Perfil</a></li>
+        <li class="nav-item"><a href="/user/mis-pedidos" class="nav-link text-dark">Mis Pedidos</a></li>
+        <li class="nav-item"><a href="/logout" class="nav-link text-dark">Cerrar Sesión</a></li>
+      <% } %>
     </ul>
   </nav>
 
-  <main>
+  <main class="container">
     <section>
       <% restaurants.forEach((restaurant) => { %>
       <div class="p-5 text-center bg-image rounded-3" style="background-image: url('https://mdbcdn.b-cdn.net/img/new/slides/041.webp'); height: 25%;">
@@ -38,80 +80,119 @@
       </div>
       <% }) %>
     </section>
-  
-    <section>
+
+    <section class="container">
       <h2>Platos Disponibles</h2>
-      <form action="/checkout" method="POST">
-        <ul class="list-group">
+      <form action="/reservar" method="POST">
+        <!-- Barra de búsqueda -->
+        <div class="mb-3">
+          <input id="searchInput" type="text" class="form-control" placeholder="Buscar platos...">
+        </div>
+
+        <div id="platosList" class="row">
           <% platos.forEach((plato) => { %>
-            <li class="list-group-item">
-              <input class="form-check-input me-1" type="checkbox" name="platosSeleccionados" value="<%= plato.id_plato %>" aria-label="...">
-              <%= plato.nombre_plato %> - Precio: $<%= plato.precio.toFixed(2) %>
-            </li>
+            <div class="card card-plato">
+              <div class="card-body">
+                <h5 class="card-title"><%= plato.nombre %></h5>
+                <p class="card-text">Precio: $<%= plato.precio.toFixed(2) %></p>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" name="platosSeleccionados" value="<%= plato.id_plato %>" aria-label="...">
+                  <label class="form-check-label">Seleccionar</label>
+                </div>
+              </div>
+            </div>
           <% }) %>
-        </ul>
-        <div id="precio-final">Precio Final: 0.00€</div>
-
-        <label for="fecha">Fecha:</label>
-        <input type="date" name="fecha" id="fecha" required>
-
-        <label for="hora">Hora:</label>
-        <select name="hora" id="hora" required>
-          <% horarios.forEach((horario) => { %>
-            <option value="<%= horario.id_horario %>" <%= horario.disponible === 0 ? "" : "disabled" %>>
-              <%= horario.hora %> <%= horario.disponible === 0 ? "" : "(Reservado)" %>
-            </option>
-          <% }) %>
-        </select>
+        </div>
         
-      
-        <input type="hidden" name="id_restaurante" value="<%= restaurants[0].id_restaurante %>">
-        <button type="submit" class="btn btn-primary">Reservar</button>
-      </form>
+        <div id="precio-final" class="mt-3">Precio Final: $0.00</div>
+        <div class="custom-card">
+          <h5>Selecciona la Fecha y Hora</h5>
+          <div class="row">
+            <div class="col-md-6">
+              <label for="fecha" class="form-label">Fecha:</label>
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <span class="input-group-text"><i class="bi bi-calendar-date"></i></span>
+                </div>
+                <input type="date" name="fecha" id="fecha" class="form-control" required>
+              </div>
+            </div>
+  
+            <div class="col-md-6">
+              <label for="hora" class="form-label">Hora:</label>
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <span class="input-group-text"><i class="bi bi-clock"></i></span>
+                </div>
+                <select name="hora" id="hora" class="form-control" required>
+                  <% horarios.forEach((horario) => { %>
+                    <option value="<%= horario.hora %>" <%= horario.disponible === 1 ? "" : "disabled" %> >
+                      <%= horario.hora %> <%= horario.disponible === 1 ? "" : "(Reservado)" %>
+                    </option>
+                  <% }) %>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <input type="hidden" name="id_restaurante" value="<%= id_restaurante %>">
+          <button type="submit" class="btn btn-primary mt-3">Reservar</button>
+        </form>
+      </div>
     </section>
   </main>
 
-    
   <script>
     document.addEventListener('DOMContentLoaded', function() {
+      const fechaInput = document.getElementById('fecha');
+      const horaSelect = document.getElementById('hora');
+      const searchInput = document.getElementById('searchInput');
+      const platosList = document.getElementById('platosList');
       const checkboxes = document.querySelectorAll('.form-check-input');
+
+      // Filtrado de platos
+      searchInput.addEventListener('input', function() {
+        const query = searchInput.value.toLowerCase();
+        const platos = platosList.getElementsByClassName('card');
+
+        for (let plato of platos) {
+          const text = plato.querySelector('.card-title').textContent.toLowerCase();
+          plato.style.display = text.includes(query) ? '' : 'none';
+        }
+      });
+
+      // Actualización del precio final
       checkboxes.forEach(function(checkbox) {
         checkbox.addEventListener('change', function() {
           let precioTotal = 0;
           checkboxes.forEach(function(checkbox) {
             if (checkbox.checked) {
-              precioTotal += parseFloat(checkbox.parentElement.textContent.trim().split('Precio: $')[1]);
+              const precio = parseFloat(checkbox.closest('.card').querySelector('.card-text').textContent.split('Precio: $')[1]);
+              precioTotal += precio;
             }
           });
           document.getElementById('precio-final').textContent = `Precio Final: $${precioTotal.toFixed(2)}`;
         });
       });
-    
-      document.getElementById('checkout-btn').addEventListener('click', function() {
-        const checkboxes = document.querySelectorAll('.form-check-input:checked');
-        const selectedPlatos = Array.from(checkboxes).map(checkbox => checkbox.value);
-        console.log(selectedPlatos); 
+
+      // Cambiar horarios según la fecha seleccionada
+      fechaInput.addEventListener('change', function() {
+        const fechaSeleccionada = fechaInput.value;
+
+        fetch(`/horariosDisponibles?fecha=${fechaSeleccionada}&id_restaurante=<%= id_restaurante %>`)
+          .then(response => response.json())
+          .then(data => {
+            horaSelect.innerHTML = '';
+            data.forEach(horario => {
+              const option = document.createElement('option');
+              option.value = horario.hora;
+              option.textContent = horario.hora + (horario.disponible === 1 ? "" : " (Reservado)");
+              option.disabled = horario.disponible !== 1;
+              horaSelect.appendChild(option);
+            });
+          });
       });
     });
-    </script>
-
-  <footer>
-    <article class="footer">
-      <footer class="d-flex flex-wrap justify-content-between align-items-center py-3 my-4 border-top">
-        <article class="col-md-4 d-flex items-center">
-          <a href="/" class="mb-3 me-2 mb-md-0 text-muted text-decoration-none lh-1">
-            <img class="mb-4" src="./Logo.jpg" alt="" width="50%" height="50%">
-          </a>
-          <span class="text-muted">&copy; 2023 RestaurantNow</span>
-        </article>
-        <ul class="nav col-md-4 justify-content-end list-unstyled d-flex">
-          <li class="ms-3"><a class="text-muted" href="https://www.instagram.com/you_drive12/"><svg class="bi" width="24" height="24"><use xlink:href="#instagram"/></svg></a></li>
-          <li class="ms-3"><a class="text-muted" href="https://www.facebook.com/youdrive2/?show_switched_toast=0&show_invite_to_follow=0&show_switched_tooltip=0&show_podcast_settings=0&show_community_transition=0&show_community_review_changes=0&show_follower_visibility_disclosure=0"><svg class="bi" width="24" height="24"><use xlink:href="#facebook"/></svg></a></li>
-        </ul>
-      </footer>
-    </article>
-  </footer>
-
-  <script src="../assets/dist/js/bootstrap.bundle.min.js"></script>
+  </script>
 </body>
 </html>
