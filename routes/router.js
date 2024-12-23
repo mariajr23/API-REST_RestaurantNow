@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const path = require("path");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const saltRounds = 10;
@@ -370,7 +371,7 @@ router.get("/admin/restaurantes/rechazar/:id", (req, res) => {
   );
 });
 
-router.get("/admin/adminUser", (req, res) => {
+router.get("/admin/adminUser", isAdmin, (req, res) => {
   conexion.query("SELECT * FROM usuarios", (error, results) => {
     if (error) {
       console.error("Error en la consulta:", error); // Agrega esta línea para ver errores
@@ -402,17 +403,14 @@ router.post("/admin/adminUser/eliminarUsuario/:id", (req, res) => {
   });
 });
 
-// Rutas protegidas
-router.use(isAuthenticated);
-
-router.get("/user/perfil", (req, res) => {
+router.get("/user/perfil", isAuthenticated, (req, res) => {
   res.render("user/perfil", {
     user: req.user,
     message: null,
   });
 });
 
-router.post("/user/perfil", (req, res) => {
+router.post("/user/perfil", isAuthenticated, (req, res) => {
   const { nombre, apellido, telefono, contrasena, confirmar_contrasena } =
     req.body;
   const userId = req.user.id_usuario;
@@ -494,21 +492,18 @@ router.post("/user/perfil", (req, res) => {
   }
 });
 
-router.get("/user/mis-pedidos", (req, res) => {
-  const userId = req.user?.id_usuario || req.query.id_usuario; // Usar query param como respaldo
+router.get("/user/mis-pedidos", authenticate, (req, res) => {
+  const userId = req.user?.id_usuario || req.query.id_usuario;
 
-  if (!userId) {
-    return res.redirect("/login");
-  }
-
-  const query = `SELECT r.id_reserva, res.nombre AS nombre_restaurante, r.fecha, r.hora, r.estado, SUM(p.precio) AS precio_total
-  FROM reservas r
-  JOIN restaurantes res ON r.id_restaurante = res.id_restaurante
-  LEFT JOIN detalles_reservas dr ON r.id_reserva = dr.id_reserva
-  LEFT JOIN platos p ON dr.id_plato = p.id_plato
-  WHERE r.id_usuario = ?
-  GROUP BY r.id_reserva, res.nombre, r.fecha, r.hora, r.estado
-`;
+  const query = `
+    SELECT r.id_reserva, res.nombre AS nombre_restaurante, r.fecha, r.hora, r.estado, SUM(p.precio) AS precio_total
+    FROM reservas r
+    JOIN restaurantes res ON r.id_restaurante = res.id_restaurante
+    LEFT JOIN detalles_reservas dr ON r.id_reserva = dr.id_reserva
+    LEFT JOIN platos p ON dr.id_plato = p.id_plato
+    WHERE r.id_usuario = ?
+    GROUP BY r.id_reserva, res.nombre, r.fecha, r.hora, r.estado
+  `;
 
   conexion.query(query, [userId], (error, results) => {
     if (error) {
@@ -603,8 +598,10 @@ router.get("/vistaRest", (req, res) => {
     }
   );
 });
-function generarFranjas() {
+
+function generarFranjas(intervaloMinutos = 15) {
   const query = "SELECT * FROM horarios_restaurantes";
+
   conexion.query(query, (error, resultados) => {
     if (error) {
       console.error("Error al obtener los horarios:", error);
@@ -612,44 +609,67 @@ function generarFranjas() {
     }
 
     resultados.forEach((horario) => {
-      const { id_restaurante, hora_inicio, hora_fin, dias_semana } = horario;
+      const { id_horario, hora_inicio, hora_fin } = horario;
 
       const horaInicio = new Date(`1970-01-01T${hora_inicio}Z`);
       const horaFin = new Date(`1970-01-01T${hora_fin}Z`);
 
-      let franjaInicio = horaInicio;
-      while (franjaInicio < horaFin) {
-        const franjaFin = new Date(franjaInicio.getTime() + 15 * 60000); // 15 minutos en milisegundos
+      // Verificar si ya existen franjas para este horario
+      const queryCheck = `
+        SELECT COUNT(*) AS total_franjas
+        FROM franjas_horarias
+        WHERE id_horario = ?
+      `;
+      conexion.query(queryCheck, [id_horario], (err, results) => {
+        if (err) {
+          console.error("Error al verificar franjas existentes:", err);
+          return;
+        }
 
-        // Insertar la franja horaria en la base de datos para cada día de la semana
-        dias_semana.split(",").forEach((dia) => {
+        if (results[0].total_franjas > 0) {
+          console.log(
+            `Las franjas ya existen para el horario ${id_horario}. No se generarán duplicados.`
+          );
+          return;
+        }
+
+        // Generar franjas si no existen
+        let franjaInicio = horaInicio;
+        while (franjaInicio < horaFin) {
+          const franjaFin = new Date(
+            franjaInicio.getTime() + intervaloMinutos * 60000
+          );
+
           const queryInsert = `
-            INSERT INTO franjas_horarias (id_restaurante, franja_inicio, franja_fin, disponibilidad, dias_semana)
-            VALUES (?, ?, ?, 1, ?)
+            INSERT INTO franjas_horarias (id_horario, franja_inicio, franja_fin, disponibilidad)
+            VALUES (?, ?, ?, 1)
           `;
           conexion.query(
             queryInsert,
             [
-              id_restaurante,
+              id_horario,
               franjaInicio.toISOString().substring(11, 16),
               franjaFin.toISOString().substring(11, 16),
-              dia,
             ],
             (err, result) => {
               if (err) {
                 console.error("Error al insertar la franja horaria:", err);
               } else {
                 console.log(
-                  `Franja horaria insertada para el restaurante ${id_restaurante} en el día ${dia}`
+                  `Franja horaria insertada: ${franjaInicio
+                    .toISOString()
+                    .substring(11, 16)} - ${franjaFin
+                    .toISOString()
+                    .substring(11, 16)}`
                 );
               }
             }
           );
-        });
 
-        // Avanzar 15 minutos
-        franjaInicio = franjaFin;
-      }
+          // Avanzar al siguiente intervalo
+          franjaInicio = franjaFin;
+        }
+      });
     });
   });
 }

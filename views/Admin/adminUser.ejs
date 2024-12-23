@@ -2,9 +2,11 @@
 <html lang="es">
   <head>
     <link
+      href="/node_modules/bootstrap/dist/css/bootstrap.min.css"
       rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.0/css/bootstrap.min.css"
     />
+
+    <script src="/node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <meta charset="utf-8" />
     <meta
       name="viewport"
@@ -14,24 +16,6 @@
     <title>Admin Dashboard - Usuarios</title>
     <link rel="stylesheet" href="/css/estilos.css" />
     <link rel="icon" href="/favicon.png" />
-    <style>
-      .sidebar {
-        height: 100vh;
-        background-color: #f8f9fa;
-        padding: 20px;
-        position: fixed;
-        width: 250px;
-        top: 0;
-        left: 0;
-      }
-      .main-content {
-        margin-left: 250px;
-        padding: 20px;
-      }
-      .dashboard-card {
-        margin-bottom: 20px;
-      }
-    </style>
   </head>
   <body>
     <!-- Sidebar -->
@@ -39,18 +23,10 @@
       <h4>Admin Menu</h4>
       <ul class="nav flex-column">
         <li class="nav-item">
-          <a class="nav-link" href="/admin/restaurantes-pending"
-            >Aceptar Restaurantes</a
-          >
-        </li>
-        <li class="nav-item">
           <a class="nav-link" href="/admin/adminUser">Gestionar Usuarios</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="/admin/admin-reservations">Ver Reservas</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="/admin/adminRest">Ver Restaurantes</a>
+          <a class="nav-link" href="/admin/adminRest">Gestionar Restaurantes</a>
         </li>
         <li class="nav-item">
           <a class="nav-link" href="/user/perfil">Perfil</a>

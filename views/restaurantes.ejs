@@ -1,86 +1,151 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="es">
-<head>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.0/css/bootstrap.min.css">
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, minimum-scale=1.0">
-  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-  <title>RestaurantNow</title>
-  <link rel="stylesheet" href="/css/estilos.css">
-  <link rel="icon" href="/favicon.png"/>
-</head>
-<body>
-  <nav class="container d-flex flex-wrap justify-content-center py-3 mb-4 text-dark border-bottom">
-    <a href="/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-decoration-none text-dark">
-      <span class="fs-4">RestaurantNow</span>
-    </a>
-    <ul class="nav nav-pills">
-      <li class="nav-item"><a href="/restaurantes" class="nav-link text-dark" aria-current="page">Restaurantes</a></li>
-      <% if (!user) { %>
-        <li class="nav-item"><a href="/login" class="nav-link text-dark">Iniciar Sesión</a></li>
-        <li class="nav-item"><a href="/registro" class="nav-link text-dark">Registrarse</a></li>
-      <% } else { %>
-        <li class="nav-item"><a href="/user/perfil" class="nav-link text-dark">Perfil</a></li>
-        <li class="nav-item"><a href="/user/mis-pedidos" class="nav-link text-dark">Mis Pedidos</a></li>
-        <li class="nav-item"><a href="/logout" class="nav-link text-dark">Cerrar Sesión</a></li>
-      <% } %>
-    </ul>
-  </nav>
+  <head>
+    <!-- Enlazar el archivo CSS de Bootstrap -->
+    <link
+      rel="stylesheet"
+      href="/node_modules/bootstrap/dist/css/bootstrap.min.css"
+    />
 
-  <main>
-    <div class="container">
-      <div class="row justify-content-center mb-4">
-        <div class="col-md-8">
-          <form action="/buscar-restaurantes" method="GET">
-            <div class="input-group">
-              <input type="text" class="form-control" placeholder="Buscar restaurantes..." name="query" aria-label="Buscar restaurantes">
-              <button class="btn btn-dark" type="submit">Buscar</button>
-            </div>
-          </form>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, user-scalable=no, initial-scale=1.0, minimum-scale=1.0"
+    />
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>RestaurantNow</title>
+    <link rel="stylesheet" href="/css/estilos.css" />
+    <link rel="icon" href="/favicon.png" />
+  </head>
+  <body>
+    <nav
+      class="container d-flex flex-wrap justify-content-center py-3 mb-4 text-dark border-bottom"
+    >
+      <a
+        href="/"
+        class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-decoration-none text-dark"
+      >
+        <span class="fs-4">RestaurantNow</span>
+      </a>
+      <ul class="nav nav-pills">
+        <li class="nav-item">
+          <a href="/restaurantes" class="nav-link text-dark" aria-current="page"
+            >Restaurantes</a
+          >
+        </li>
+        <% if (!user) { %>
+        <li class="nav-item">
+          <a href="/login" class="nav-link text-dark">Iniciar Sesión</a>
+        </li>
+        <li class="nav-item">
+          <a href="/registro" class="nav-link text-dark">Registrarse</a>
+        </li>
+        <% } else { %>
+        <li class="nav-item">
+          <a href="/user/perfil" class="nav-link text-dark">Perfil</a>
+        </li>
+        <li class="nav-item">
+          <a href="/user/mis-pedidos" class="nav-link text-dark">Mis Pedidos</a>
+        </li>
+        <li class="nav-item">
+          <a href="/logout" class="nav-link text-dark">Cerrar Sesión</a>
+        </li>
+        <% } %>
+      </ul>
+    </nav>
+
+    <main>
+      <div class="container">
+        <div class="row justify-content-center mb-4">
+          <div class="col-md-8">
+            <form action="/buscar-restaurantes" method="GET">
+              <div class="input-group">
+                <input
+                  type="text"
+                  class="form-control"
+                  placeholder="Buscar restaurantes..."
+                  name="query"
+                  aria-label="Buscar restaurantes"
+                />
+                <button class="btn btn-dark" type="submit">Buscar</button>
+              </div>
+            </form>
+          </div>
         </div>
-      </div>
-      <br>
-      <h1 class="fw-light col-lg-8 col-md-10 mx-auto text-center">Descubre nuestros Restaurantes</h1>
-      <br>
+        <br />
+        <h1 class="fw-light col-lg-8 col-md-10 mx-auto text-center">
+          Descubre nuestros Restaurantes
+        </h1>
+        <br />
 
-      <div class="album bg-body-tertiary">
-        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3">
-          <% restaurants.forEach((restaurant) => { %>
+        <div class="album bg-body-tertiary">
+          <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3">
+            <% restaurants.forEach((restaurant) => { %>
             <div class="col text-center">
               <div class="card shadow-sm">
                 <div class="card-body">
                   <h5 class="card-title"><%= restaurant.nombre %></h5>
-                  <p class="card-text">Dirección: <%= restaurant.direccion %></p>
+                  <p class="card-text">
+                    Dirección: <%= restaurant.direccion %>
+                  </p>
                   <p class="card-text">Teléfono: <%= restaurant.telefono %></p>
 
-                  <div class="d-flex justify-content-between align-items-center">
+                  <div
+                    class="d-flex justify-content-between align-items-center"
+                  >
                     <div class="btn-group">
-                      <a href="/vistaRest?id_restaurante=<%= restaurant.id_restaurante %>" class="btn btn-sm btn-outline-secondary">Menú</a>
+                      <a
+                        href="/vistaRest?id_restaurante=<%= restaurant.id_restaurante %>"
+                        class="btn btn-sm btn-outline-secondary"
+                        >Menú</a
+                      >
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-          <% }) %>
+            <% }) %>
+          </div>
         </div>
       </div>
-    </div>
-  </main>
+    </main>
 
-  <footer class="d-flex flex-wrap justify-content-between align-items-center py-3 my-4 border-top">
-    <div class="col-md-4 d-flex align-items-center">
-      <a href="/" class="mb-3 me-2 mb-md-0 text-muted text-decoration-none lh-1">
-        <img class="mb-4" src="/images/Logo.jpg" alt="Logo" width="50%" height="50%">
-      </a>
-      <span class="text-muted">&copy; 2023 RestaurantNow</span>
-    </div>
+    <footer
+      class="d-flex flex-wrap justify-content-between align-items-center py-3 my-4 border-top"
+    >
+      <div class="col-md-4 d-flex align-items-center">
+        <a
+          href="/"
+          class="mb-3 me-2 mb-md-0 text-muted text-decoration-none lh-1"
+        >
+          <img
+            class="mb-4"
+            src="/images/Logo.jpg"
+            alt="Logo"
+            width="50%"
+            height="50%"
+          />
+        </a>
+        <span class="text-muted">&copy; 2023 RestaurantNow</span>
+      </div>
 
-    <ul class="nav col-md-4 justify-content-end list-unstyled d-flex">
-      <li class="ms-3"><a class="text-muted" href="https://www.instagram.com/you_drive12/"><svg class="bi" width="24" height="24"><use xlink:href="#instagram"/></svg></a></li>
-      <li class="ms-3"><a class="text-muted" href="https://www.facebook.com/youdrive2/?show_switched_toast=0&show_invite_to_follow=0&show_switched_tooltip=0&show_podcast_settings=0&show_community_transition=0&show_community_review_changes=0&show_follower_visibility_disclosure=0"><svg class="bi" width="24" height="24"><use xlink:href="#facebook"/></svg></a></li>
-    </ul>
-  </footer>
-
-  <script src="../assets/dist/js/bootstrap.bundle.min.js"></script>
-</body>
+      <ul class="nav col-md-4 justify-content-end list-unstyled d-flex">
+        <li class="ms-3">
+          <a class="text-muted" href="https://www.instagram.com/you_drive12/"
+            ><svg class="bi" width="24" height="24">
+              <use xlink:href="#instagram" /></svg
+          ></a>
+        </li>
+        <li class="ms-3">
+          <a
+            class="text-muted"
+            href="https://www.facebook.com/youdrive2/?show_switched_toast=0&show_invite_to_follow=0&show_switched_tooltip=0&show_podcast_settings=0&show_community_transition=0&show_community_review_changes=0&show_follower_visibility_disclosure=0"
+            ><svg class="bi" width="24" height="24">
+              <use xlink:href="#facebook" /></svg
+          ></a>
+        </li>
+      </ul>
+    </footer>
+    <script src="/node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+  </body>
 </html>

@@ -1,131 +1,191 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="es">
-<head>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.0/css/bootstrap.min.css">
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, minimum-scale=1.0">
-  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-  <title>RestaurantNow</title>
-  <link rel="stylesheet" href="/css/estilos.css">
-  <link rel="icon" href="/favicon.png"/>
-  <style>
-    body {
-      background-color: #f8f9fa;
-    }
-    .form-signin {
-      max-width: 400px;
-      padding: 15px;
-      margin: auto;
-      background: white;
-      border-radius: 8px;
-      box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
-    }
-    .form-signin img {
-      margin-bottom: 15px;
-    }
-    .form-floating label {
-      margin-bottom: 0;
-    }
-    .btn-bg-black {
-      background-color: #343a40;
-      color: #fff;
-    }
-    .btn-bg-black:hover {
-      background-color: #23272b;
-      color: #fff;
-    }
-    .footer-logo {
-      max-width: 50px;
-    }
-    .footer-text {
-      color: #6c757d;
-    }
-    .nav-link {
-      color: #343a40 !important;
-    }
-    .nav-link:hover {
-      color: #007bff !important;
-    }
-    .text-center {
-      text-align: center;
-    }
-  </style>
-</head>
-<body class="text-center">
-  <nav class="container d-flex flex-wrap justify-content-center py-3 mb-4 text-dark border-bottom">
-    <a href="/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-decoration-none text-dark">
-      <span class="fs-4">RestaurantNow</span>
-    </a>
-    <ul class="nav nav-pills">
-      <li class="nav-item"><a href="/restaurantes" class="nav-link text-dark" aria-current="page">Restaurantes</a></li>
-      <% if (!user) { %>
-        <li class="nav-item"><a href="/login" class="nav-link text-dark">Iniciar Sesión</a></li>
-        <li class="nav-item"><a href="/registro" class="nav-link text-dark">Registrarse</a></li>
-      <% } else { %>
-        <li class="nav-item"><a href="/user/perfil" class="nav-link text-dark">Perfil</a></li>
-        <li class="nav-item"><a href="/user/mis-pedidos" class="nav-link text-dark">Mis Pedidos</a></li>
-        <li class="nav-item"><a href="/logout" class="nav-link text-dark">Cerrar Sesión</a></li>
-      <% } %>
-    </ul>
-  </nav>
-  <main class="login">
-    <ul class="nav nav-tabs" id="myTab" role="tablist">
-      <li class="nav-item" role="presentation">
-        <a class="nav-link active" id="usuario-tab" data-toggle="tab" href="#usuario" role="tab" aria-controls="usuario" aria-selected="true">Usuario</a>
-      </li>
-      <li class="nav-item" role="presentation">
-        <a class="nav-link" id="restaurante-tab" data-toggle="tab" href="#restaurante" role="tab" aria-controls="restaurante" aria-selected="false">Restaurante</a>
-      </li>
-    </ul>
+  <head>
+    <link
+      href="/node_modules/bootstrap/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
 
-    <div class="tab-content" id="myTabContent">
-      <!-- Formulario de login para usuarios -->
-      <div class="tab-pane fade show active" id="usuario" role="tabpanel" aria-labelledby="usuario-tab">
-        <form class="form-signin" action="/iniciarsesion-usuario" method="POST">
-          <img class="footer-logo" src="/images/Logo.png" alt="Logo">
-          <h1 class="h3 mb-3 fw-normal">Iniciar sesión como Usuario</h1>
-          <div class="form-floating">
-            <label for="floatingInput">Email</label>
-            <input type="email" class="form-control" id="floatingInput" placeholder="name@ejemplo.com" name="email" required>
-          </div>
-          <div class="form-floating mt-3">
-            <label for="floatingPassword">Contraseña</label>
-            <input type="password" class="form-control" id="floatingPassword" placeholder="Password" name="contrasena" required>
-            <a href="/resetar-password" class="text-primary">¿Olvidaste tu contraseña?</a>
-          </div>
-          <button class="btn btn-bg-black my-2" type="submit">Iniciar Sesión</button>
-        </form>
-      </div>
-
-      <!-- Formulario de login para restaurantes -->
-      <div class="tab-pane fade" id="restaurante" role="tabpanel" aria-labelledby="restaurante-tab">
-        <form class="form-signin" action="/iniciarsesion-restaurante" method="POST">
-          <img class="footer-logo" src="/images/Logo.png" alt="Logo">
-          <h1 class="h3 mb-3 fw-normal">Iniciar sesión como Restaurante</h1>
-          <div class="form-floating">
-            <label for="floatingInputRestaurante">Email</label>
-            <input type="email" class="form-control" id="floatingInputRestaurante" placeholder="name@ejemplo.com" name="email" required>
-          </div>
-          <div class="form-floating mt-3">
-            <label for="floatingPasswordRestaurante">Contraseña</label>
-            <input type="password" class="form-control" id="floatingPasswordRestaurante" placeholder="Password" name="contrasena" required>
-          </div>
-          <button class="btn btn-bg-black my-2" type="submit">Iniciar Sesión</button>
-        </form>
-      </div>
-    </div>
-  </main>
-
-  <footer class="d-flex flex-wrap justify-content-between align-items-center py-3 my-4 border-top">
-    <div class="col-md-4 d-flex align-items-center">
-      <a href="/" class="mb-3 me-2 mb-md-0 text-muted text-decoration-none lh-1">
-        <img class="footer-logo" src="/images/Logo.jpg" alt="Logo">
+    <script src="/node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, user-scalable=no, initial-scale=1.0, minimum-scale=1.0"
+    />
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>RestaurantNow</title>
+    <link rel="stylesheet" href="/css/estilos.css" />
+    <link rel="icon" href="/favicon.png" />
+  </head>
+  <body class="text-center">
+    <nav
+      class="container d-flex flex-wrap justify-content-center py-3 mb-4 text-dark border-bottom"
+    >
+      <a
+        href="/"
+        class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-decoration-none text-dark"
+      >
+        <span class="fs-4">RestaurantNow</span>
       </a>
-      <span class="footer-text">&copy; 2023 RestaurantNow</span>
-    </div>
-  </footer>
+      <ul class="nav nav-pills">
+        <li class="nav-item">
+          <a href="/restaurantes" class="nav-link text-dark" aria-current="page"
+            >Restaurantes</a
+          >
+        </li>
+        <% if (!user) { %>
+        <li class="nav-item">
+          <a href="/login" class="nav-link text-dark">Iniciar Sesión</a>
+        </li>
+        <li class="nav-item">
+          <a href="/registro" class="nav-link text-dark">Registrarse</a>
+        </li>
+        <% } else { %>
+        <li class="nav-item">
+          <a href="/user/perfil" class="nav-link text-dark">Perfil</a>
+        </li>
+        <li class="nav-item">
+          <a href="/user/mis-pedidos" class="nav-link text-dark">Mis Pedidos</a>
+        </li>
+        <li class="nav-item">
+          <a href="/logout" class="nav-link text-dark">Cerrar Sesión</a>
+        </li>
+        <% } %>
+      </ul>
+    </nav>
+    <main class="login">
+      <ul class="nav nav-tabs" id="myTab" role="tablist">
+        <li class="nav-item" role="presentation">
+          <a
+            class="nav-link active"
+            id="usuario-tab"
+            data-toggle="tab"
+            href="#usuario"
+            role="tab"
+            aria-controls="usuario"
+            aria-selected="true"
+            >Usuario</a
+          >
+        </li>
+        <li class="nav-item" role="presentation">
+          <a
+            class="nav-link"
+            id="restaurante-tab"
+            data-toggle="tab"
+            href="#restaurante"
+            role="tab"
+            aria-controls="restaurante"
+            aria-selected="false"
+            >Restaurante</a
+          >
+        </li>
+      </ul>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.0/js/bootstrap.min.js"></script>
-</body>
+      <div class="tab-content" id="myTabContent">
+        <!-- Formulario de login para usuarios -->
+        <div
+          class="tab-pane fade show active"
+          id="usuario"
+          role="tabpanel"
+          aria-labelledby="usuario-tab"
+        >
+          <form
+            class="form-signin"
+            action="/iniciarsesion-usuario"
+            method="POST"
+          >
+            <img class="footer-logo" src="/images/Logo.png" alt="Logo" />
+            <h1 class="h3 mb-3 fw-normal">Iniciar sesión como Usuario</h1>
+            <div class="form-floating">
+              <label for="floatingInput">Email</label>
+              <input
+                type="email"
+                class="form-control"
+                id="floatingInput"
+                placeholder="name@ejemplo.com"
+                name="email"
+                required
+              />
+            </div>
+            <div class="form-floating mt-3">
+              <label for="floatingPassword">Contraseña</label>
+              <input
+                type="password"
+                class="form-control"
+                id="floatingPassword"
+                placeholder="Password"
+                name="contrasena"
+                required
+              />
+              <a href="/resetar-password" class="text-primary"
+                >¿Olvidaste tu contraseña?</a
+              >
+            </div>
+            <button class="btn btn-bg-black my-2" type="submit">
+              Iniciar Sesión
+            </button>
+          </form>
+        </div>
+
+        <!-- Formulario de login para restaurantes -->
+        <div
+          class="tab-pane fade"
+          id="restaurante"
+          role="tabpanel"
+          aria-labelledby="restaurante-tab"
+        >
+          <form
+            class="form-signin"
+            action="/iniciarsesion-restaurante"
+            method="POST"
+          >
+            <img class="footer-logo" src="/images/Logo.png" alt="Logo" />
+            <h1 class="h3 mb-3 fw-normal">Iniciar sesión como Restaurante</h1>
+            <div class="form-floating">
+              <label for="floatingInputRestaurante">Email</label>
+              <input
+                type="email"
+                class="form-control"
+                id="floatingInputRestaurante"
+                placeholder="name@ejemplo.com"
+                name="email"
+                required
+              />
+            </div>
+            <div class="form-floating mt-3">
+              <label for="floatingPasswordRestaurante">Contraseña</label>
+              <input
+                type="password"
+                class="form-control"
+                id="floatingPasswordRestaurante"
+                placeholder="Password"
+                name="contrasena"
+                required
+              />
+            </div>
+            <button class="btn btn-bg-black my-2" type="submit">
+              Iniciar Sesión
+            </button>
+          </form>
+        </div>
+      </div>
+    </main>
+
+    <footer
+      class="d-flex flex-wrap justify-content-between align-items-center py-3 my-4 border-top"
+    >
+      <div class="col-md-4 d-flex align-items-center">
+        <a
+          href="/"
+          class="mb-3 me-2 mb-md-0 text-muted text-decoration-none lh-1"
+        >
+          <img class="footer-logo" src="/images/Logo.jpg" alt="Logo" />
+        </a>
+        <span class="footer-text">&copy; 2023 RestaurantNow</span>
+      </div>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.0/js/bootstrap.min.js"></script>
+  </body>
 </html>

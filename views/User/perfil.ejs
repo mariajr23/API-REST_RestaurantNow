@@ -1,124 +1,213 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="es">
-<head>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.0/css/bootstrap.min.css">
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, minimum-scale=1.0">
-  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-  <title>RestaurantNow</title>
-  <link rel="stylesheet" href="/css/estilos.css">
-  <link rel="icon" href="/favicon.png"/>
-</head>
-<body class="text-center">
-  <nav class="container d-flex flex-wrap justify-content-center py-3 mb-4 text-dark border-bottom">
-    <a href="/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-decoration-none text-dark">
-      <span class="fs-4">RestaurantNow</span>
-    </a>
-    <ul class="nav nav-pills">
-      <li class="nav-item"><a href="/restaurantes" class="nav-link text-dark" aria-current="page">Restaurantes</a></li>
-      <% if (!user) { %>
-        <li class="nav-item"><a href="/login" class="nav-link text-dark">Iniciar Sesión</a></li>
-        <li class="nav-item"><a href="/registro" class="nav-link text-dark">Registrarse</a></li>
-      <% } else { %>
-        <li class="nav-item"><a href="/user/perfil" class="nav-link text-dark">Perfil</a></li>
-        <li class="nav-item"><a href="/user/mis-pedidos" class="nav-link text-dark">Mis Pedidos</a></li>
-        <li class="nav-item"><a href="/logout" class="nav-link text-dark">Cerrar Sesión</a></li>
-      <% } %>
-    </ul>
-  </nav>
-  
-  <main>
-    <div class="container rounded bg-white mt-5 mb-5">
-      <div class="row">
-        <div class="col-md-3 border-right">
-          <div class="d-flex flex-column align-items-center text-center p-3 py-5">
-            <img class="rounded-circle mt-5" width="150px" src="https://st3.depositphotos.com/15648834/17930/v/600/depositphotos_179308454-stock-illustration-unknown-person-silhouette-glasses-profile.jpg">
-            <span class="font-weight-bold"><%= user.nombre %> <%= user.apellido %></span>
-            <span class="text-black-50"><%= user.email %></span>
-            <span></span>
-          </div>
-        </div>
-        <div class="col-md-5 border-right">
-          <div class="p-3 py-5">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-              <h4 class="text-right">Configuración del Perfil</h4>
+  <head>
+    <link
+      href="/node_modules/bootstrap/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, user-scalable=no, initial-scale=1.0, minimum-scale=1.0"
+    />
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>RestaurantNow</title>
+    <link rel="stylesheet" href="/css/estilos.css" />
+    <link rel="icon" href="/favicon.png" />
+  </head>
+  <body class="text-center">
+    <nav
+      class="container d-flex flex-wrap justify-content-center py-3 mb-4 text-dark border-bottom"
+    >
+      <a
+        href="/"
+        class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-decoration-none text-dark"
+      >
+        <span class="fs-4">RestaurantNow</span>
+      </a>
+      <ul class="nav nav-pills">
+        <li class="nav-item">
+          <a href="/restaurantes" class="nav-link text-dark" aria-current="page"
+            >Restaurantes</a
+          >
+        </li>
+        <% if (!user) { %>
+        <li class="nav-item">
+          <a href="/login" class="nav-link text-dark">Iniciar Sesión</a>
+        </li>
+        <li class="nav-item">
+          <a href="/registro" class="nav-link text-dark">Registrarse</a>
+        </li>
+        <% } else { %>
+        <li class="nav-item">
+          <a href="/user/perfil" class="nav-link text-dark">Perfil</a>
+        </li>
+        <li class="nav-item">
+          <a href="/user/mis-pedidos" class="nav-link text-dark">Mis Pedidos</a>
+        </li>
+        <li class="nav-item">
+          <a href="/logout" class="nav-link text-dark">Cerrar Sesión</a>
+        </li>
+        <% } %>
+      </ul>
+    </nav>
+
+    <main>
+      <div class="container rounded bg-white mt-5 mb-5">
+        <div class="row">
+          <div class="col-md-3 border-right">
+            <div
+              class="d-flex flex-column align-items-center text-center p-3 py-5"
+            >
+              <img
+                class="rounded-circle mt-5"
+                width="150px"
+                src="https://st3.depositphotos.com/15648834/17930/v/600/depositphotos_179308454-stock-illustration-unknown-person-silhouette-glasses-profile.jpg"
+              />
+              <span class="font-weight-bold"
+                ><%= user.nombre %> <%= user.apellido %></span
+              >
+              <span class="text-black-50"><%= user.email %></span>
+              <span></span>
             </div>
-            <% if (message) { %>
+          </div>
+          <div class="col-md-5 border-right">
+            <div class="p-3 py-5">
+              <div
+                class="d-flex justify-content-between align-items-center mb-3"
+              >
+                <h4 class="text-right">Configuración del Perfil</h4>
+              </div>
+              <% if (message) { %>
               <div class="alert alert-<%= message.type %>">
                 <%= message.text %>
               </div>
-            <% } %>
-            <form action="/user/perfil" method="POST">
-              <div class="row mt-2">
-                <div class="col-md-6">
-                  <label class="labels">Nombre</label>
-                  <input type="text" class="form-control" name="nombre" value="<%= user.nombre %>" required>
+              <% } %>
+              <form action="/user/perfil" method="POST">
+                <div class="row mt-2">
+                  <div class="col-md-6">
+                    <label class="labels">Nombre</label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      name="nombre"
+                      value="<%= user.nombre %>"
+                      required
+                    />
+                  </div>
+                  <div class="col-md-6">
+                    <label class="labels">Apellido</label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      name="apellido"
+                      value="<%= user.apellido %>"
+                      required
+                    />
+                  </div>
                 </div>
-                <div class="col-md-6">
-                  <label class="labels">Apellido</label>
-                  <input type="text" class="form-control" name="apellido" value="<%= user.apellido %>" required>
+                <div class="row mt-3">
+                  <div class="col-md-12">
+                    <label class="labels">Teléfono</label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      name="telefono"
+                      value="<%= user.telefono %>"
+                      required
+                    />
+                  </div>
+                  <div class="col-md-12">
+                    <label class="labels">Nueva Contraseña</label>
+                    <input
+                      type="password"
+                      class="form-control"
+                      name="contrasena"
+                      placeholder="Introduce nueva contraseña"
+                    />
+                  </div>
+                  <div class="col-md-12">
+                    <label class="labels">Confirmar Nueva Contraseña</label>
+                    <input
+                      type="password"
+                      class="form-control"
+                      name="confirmar_contrasena"
+                      placeholder="Confirma nueva contraseña"
+                    />
+                  </div>
                 </div>
-              </div>
-              <div class="row mt-3">
-                <div class="col-md-12">
-                  <label class="labels">Teléfono</label>
-                  <input type="text" class="form-control" name="telefono" value="<%= user.telefono %>" required>
+                <div class="mt-5 text-center">
+                  <button class="btn btn-primary profile-button" type="submit">
+                    Guardar Perfil
+                  </button>
                 </div>
-                <div class="col-md-12">
-                  <label class="labels">Nueva Contraseña</label>
-                  <input type="password" class="form-control" name="contrasena" placeholder="Introduce nueva contraseña">
-                </div>
-                <div class="col-md-12">
-                  <label class="labels">Confirmar Nueva Contraseña</label>
-                  <input type="password" class="form-control" name="confirmar_contrasena" placeholder="Confirma nueva contraseña">
-                </div>
-              </div>
-              <div class="mt-5 text-center">
-                <button class="btn btn-primary profile-button" type="submit">Guardar Perfil</button>
-              </div>
-            </form>
+              </form>
+            </div>
           </div>
-        </div>
-        <div class="col-md-4">
-          <div class="p-3 py-5">
-            <div class="d-flex justify-content-between align-items-center">
-              <h5>Acciones</h5>
-            </div>
-            <br>
-            <div class="col-md-12">
-              <form action="/user/mis-pedidos" method="GET">
-                <button class="btn btn-primary w-100" type="submit">Mis pedidos</button>
-              </form>
-            </div>
-            <br>
-            <div class="col-md-12">
-              <form action="/user/logout" method="POST">
-                <button class="btn btn-danger w-100" type="submit">Cerrar Sesion</button>
-              </form>
+          <div class="col-md-4">
+            <div class="p-3 py-5">
+              <div class="d-flex justify-content-between align-items-center">
+                <h5>Acciones</h5>
+              </div>
+              <br />
+              <div class="col-md-12">
+                <form action="/user/mis-pedidos" method="GET">
+                  <button class="btn btn-primary w-100" type="submit">
+                    Mis pedidos
+                  </button>
+                </form>
+              </div>
+              <br />
+              <div class="col-md-12">
+                <form action="/user/logout" method="POST">
+                  <button class="btn btn-danger w-100" type="submit">
+                    Cerrar Sesion
+                  </button>
+                </form>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
-  </main>
-  
-  <footer>
-    <article class="footer">
-      <footer class="d-flex flex-wrap justify-content-between align-items-center py-3 my-4 border-top">
-        <article class="col-md-4 d-flex items-center">
-          <a href="/" class="mb-3 me-2 mb-md-0 text-muted text-decoration-none lh-1">
-            <img class="footer-logo" src="/images/Logo.png" alt="Logo">
-          </a>
-          <span class="text-muted">&copy; 2023 RestaurantNow</span>
-        </article>
-        <ul class="nav col-md-4 justify-content-end list-unstyled d-flex">
-          <li class="ms-3"><a class="text-muted" href="https://www.instagram.com/you_drive12/"><svg class="bi" width="24" height="24"><use xlink:href="#instagram"/></svg></a></li>
-          <li class="ms-3"><a class="text-muted" href="https://www.facebook.com/youdrive2/?show_switched_toast=0&show_invite_to_follow=0&show_switched_tooltip=0&show_podcast_settings=0&show_community_transition=0&show_community_review_changes=0&show_follower_visibility_disclosure=0"><svg class="bi" width="24" height="24"><use xlink:href="#facebook"/></svg></a></li>
-        </ul>
-      </footer>
-    </article>
-  </footer>
+    </main>
 
-  <script src="../assets/dist/js/bootstrap.bundle.min.js"></script>
-</body>
+    <footer>
+      <article class="footer">
+        <footer
+          class="d-flex flex-wrap justify-content-between align-items-center py-3 my-4 border-top"
+        >
+          <article class="col-md-4 d-flex items-center">
+            <a
+              href="/"
+              class="mb-3 me-2 mb-md-0 text-muted text-decoration-none lh-1"
+            >
+              <img class="footer-logo" src="/images/Logo.png" alt="Logo" />
+            </a>
+            <span class="text-muted">&copy; 2023 RestaurantNow</span>
+          </article>
+          <ul class="nav col-md-4 justify-content-end list-unstyled d-flex">
+            <li class="ms-3">
+              <a
+                class="text-muted"
+                href="https://www.instagram.com/you_drive12/"
+                ><svg class="bi" width="24" height="24">
+                  <use xlink:href="#instagram" /></svg
+              ></a>
+            </li>
+            <li class="ms-3">
+              <a
+                class="text-muted"
+                href="https://www.facebook.com/youdrive2/?show_switched_toast=0&show_invite_to_follow=0&show_switched_tooltip=0&show_podcast_settings=0&show_community_transition=0&show_community_review_changes=0&show_follower_visibility_disclosure=0"
+                ><svg class="bi" width="24" height="24">
+                  <use xlink:href="#facebook" /></svg
+              ></a>
+            </li>
+          </ul>
+        </footer>
+      </article>
+    </footer>
+
+    <script src="/node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+  </body>
 </html>

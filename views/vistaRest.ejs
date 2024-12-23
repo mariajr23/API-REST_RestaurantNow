@@ -3,7 +3,7 @@
   <head>
     <link
       rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.0/css/bootstrap.min.css"
+      href="/node_modules/bootstrap/dist/css/bootstrap.min.css"
     />
     <meta charset="utf-8" />
     <meta
@@ -14,42 +14,46 @@
     <title>RestaurantNow</title>
     <link rel="stylesheet" href="/css/estilos.css" />
     <link rel="icon" href="/favicon.png" />
-
     <style>
-      .custom-card {
-        border: 1px solid #e0e0e0;
-        border-radius: 10px;
+      body {
         background-color: #f8f9fa;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        padding: 20px;
-        margin-top: 20px;
       }
-      .custom-card h5 {
-        color: #495057;
+      .form-signin {
+        max-width: 400px;
+        padding: 15px;
+        margin: auto;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+      }
+      .form-signin img {
         margin-bottom: 15px;
       }
-      .form-control {
-        border-radius: 5px;
+      .form-floating label {
+        margin-bottom: 0;
       }
-      .custom-card .btn {
-        background-color: #007bff;
-        border-color: #007bff;
-        border-radius: 5px;
-        padding: 10px 20px;
+      .btn-bg-black {
+        background-color: #343a40;
+        color: #fff;
       }
-      .card-plato {
-        margin-bottom: 20px;
+      .btn-bg-black:hover {
+        background-color: #23272b;
+        color: #fff;
       }
-      .hidden {
-        display: none;
+      .footer-logo {
+        max-width: 50px;
       }
-      .row {
-        display: flex;
-        flex-wrap: wrap;
+      .footer-text {
+        color: #6c757d;
       }
-      .card-plato {
-        flex: 1 0 30%;
-        margin: 15px;
+      .nav-link {
+        color: #343a40 !important;
+      }
+      .nav-link:hover {
+        color: #007bff !important;
+      }
+      .text-center {
+        text-align: center;
       }
     </style>
   </head>
@@ -175,20 +179,12 @@
               </div>
               <div class="form-group">
                 <label for="hora">Hora de Reserva</label>
-                <h3>COMIDA</h3>
                 <div>
-                  <% franjas.forEach(franja => { %> <% if (franja.franja_inicio
-                  < '18:00') { %>
-                  <button><%= franja.franja_inicio %></button>
-                  <% } %> <% }); %>
-                </div>
-
-                <h3>CENA</h3>
-                <div>
-                  <% franjas.forEach(franja => { %> <% if (franja.franja_inicio
-                  >= '18:00') { %>
-                  <button><%= franja.franja_inicio %></button>
-                  <% } %> <% }); %>
+                  <% franjas.forEach(franja => { %>
+                  <button class="btn btn-outline-secondary" type="button">
+                    <%= franja.franja_inicio %>
+                  </button>
+                  <% }); %>
                 </div>
               </div>
             </div>
@@ -203,6 +199,7 @@
         </form>
       </section>
     </main>
+    <script src="/node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
       document.addEventListener("DOMContentLoaded", function () {

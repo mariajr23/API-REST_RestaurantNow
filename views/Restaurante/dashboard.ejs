@@ -1,90 +1,101 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="es">
-<head>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.0/css/bootstrap.min.css">
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, minimum-scale=1.0">
-  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-  <title>Admin Dashboard - RestaurantNow</title>
-  <link rel="stylesheet" href="/css/estilos.css">
-  <link rel="icon" href="/favicon.png"/>
-  <style>
-    .sidebar {
-      height: 100vh;
-      background-color: #f8f9fa;
-      padding: 20px;
-      position: fixed;
-      width: 250px;
-      top: 0;
-      left: 0;
-    }
-    .main-content {
-      margin-left: 250px;
-      padding: 20px;
-    }
-    .dashboard-card {
-      margin-bottom: 20px;
-    }
-  </style>
-</head>
-<body>
-  <nav class="sidebar">
-    <h4>Admin Menu</h4>
-    <ul class="nav flex-column">
-      <li class="nav-item">
-        <a class="nav-link" href="restaurante/reservas">Gestionar Reservas</a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" href="restaurante/platos">Gestionar Platos</a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" href="restaurante/dashboard">Perfil</a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" href="/logout">Cerrar Sesión</a>
-      </li>
-    </ul>
-  </nav>
-<main>
-  <div class="main-content">
-    <header>
-      <h1 class="text-center">Dashboard</h1>
-    </header>
+  <head>
+    <link
+      rel="stylesheet"
+      href="/node_modules/bootstrap/dist/css/bootstrap.min.css"
+    />
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, user-scalable=no, initial-scale=1.0, minimum-scale=1.0"
+    />
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>Admin Dashboard - RestaurantNow</title>
+    <link rel="stylesheet" href="/css/estilos.css" />
+    <link rel="icon" href="/favicon.png" />
+  </head>
+  <body>
+    <nav class="sidebar">
+      <h4>Admin Menu</h4>
+      <ul class="nav flex-column">
+        <li class="nav-item">
+          <a class="nav-link" href="restaurante/reservas">Gestionar Reservas</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="restaurante/platos">Gestionar Platos</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="restaurante/dashboard">Perfil</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/logout">Cerrar Sesión</a>
+        </li>
+      </ul>
+    </nav>
+    <main>
+      <div class="main-content">
+        <header>
+          <h1 class="text-center">Dashboard</h1>
+        </header>
 
-    <div class="container">
-      <div class="row">
-        <div class="col-md-6 col-lg-4 dashboard-card">
-          <div class="card">
-            <div class="card-body">
-              <h5 class="card-title">Total Restaurantes</h5>
+        <div class="container">
+          <div class="row">
+            <div class="col-md-6 col-lg-4 dashboard-card">
+              <div class="card">
+                <div class="card-body">
+                  <h5 class="card-title">Total Restaurantes</h5>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-        <div class="col-md-6 col-lg-4 dashboard-card">
-          <div class="card">
-            <div class="card-body">
-              <h5 class="card-title">Total Reservas</h5>
+            <div class="col-md-6 col-lg-4 dashboard-card">
+              <div class="card">
+                <div class="card-body">
+                  <h5 class="card-title">Total Reservas</h5>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
-  </div>
-</main>
-  <footer class="d-flex flex-wrap justify-content-between align-items-center py-3 my-4 border-top">
-    <div class="col-md-4 d-flex align-items-center">
-      <a href="/" class="mb-3 me-2 mb-md-0 text-muted text-decoration-none lh-1">
-        <img class="mb-4" src="/images/Logo.jpg" alt="Logo" width="50%" height="50%">
-      </a>
-      <span class="text-muted">&copy; 2023 RestaurantNow</span>
-    </div>
+    </main>
+    <footer
+      class="d-flex flex-wrap justify-content-between align-items-center py-3 my-4 border-top"
+    >
+      <div class="col-md-4 d-flex align-items-center">
+        <a
+          href="/"
+          class="mb-3 me-2 mb-md-0 text-muted text-decoration-none lh-1"
+        >
+          <img
+            class="mb-4"
+            src="/images/Logo.jpg"
+            alt="Logo"
+            width="50%"
+            height="50%"
+          />
+        </a>
+        <span class="text-muted">&copy; 2023 RestaurantNow</span>
+      </div>
 
-    <ul class="nav col-md-4 justify-content-end list-unstyled d-flex">
-      <li class="ms-3"><a class="text-muted" href="https://www.instagram.com/you_drive12/"><svg class="bi" width="24" height="24"><use xlink:href="#instagram"/></svg></a></li>
-      <li class="ms-3"><a class="text-muted" href="https://www.facebook.com/youdrive2/?show_switched_toast=0&show_invite_to_follow=0&show_switched_tooltip=0&show_podcast_settings=0&show_community_transition=0&show_community_review_changes=0&show_follower_visibility_disclosure=0"><svg class="bi" width="24" height="24"><use xlink:href="#facebook"/></svg></a></li>
-    </ul>
-  </footer>
+      <ul class="nav col-md-4 justify-content-end list-unstyled d-flex">
+        <li class="ms-3">
+          <a class="text-muted" href="https://www.instagram.com/you_drive12/"
+            ><svg class="bi" width="24" height="24">
+              <use xlink:href="#instagram" /></svg
+          ></a>
+        </li>
+        <li class="ms-3">
+          <a
+            class="text-muted"
+            href="https://www.facebook.com/youdrive2/?show_switched_toast=0&show_invite_to_follow=0&show_switched_tooltip=0&show_podcast_settings=0&show_community_transition=0&show_community_review_changes=0&show_follower_visibility_disclosure=0"
+            ><svg class="bi" width="24" height="24">
+              <use xlink:href="#facebook" /></svg
+          ></a>
+        </li>
+      </ul>
+    </footer>
 
-  <script src="../assets/dist/js/bootstrap.bundle.min.js"></script>
-</body>
+    <script src="/node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+  </body>
 </html>
