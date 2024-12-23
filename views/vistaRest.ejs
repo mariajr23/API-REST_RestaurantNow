@@ -1,198 +1,285 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="es">
-<head>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.0/css/bootstrap.min.css">
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, minimum-scale=1.0">
-  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-  <title>RestaurantNow</title>
-  <link rel="stylesheet" href="/css/estilos.css">
-  <link rel="icon" href="/favicon.png"/>
+  <head>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.0/css/bootstrap.min.css"
+    />
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, user-scalable=no, initial-scale=1.0, minimum-scale=1.0"
+    />
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>RestaurantNow</title>
+    <link rel="stylesheet" href="/css/estilos.css" />
+    <link rel="icon" href="/favicon.png" />
 
-  <style>
-    .custom-card {
-      border: 1px solid #e0e0e0;
-      border-radius: 10px;
-      background-color: #f8f9fa;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      padding: 20px;
-      margin-top: 20px;
-    }
-    .custom-card h5 {
-      color: #495057;
-      margin-bottom: 15px;
-    }
-    .form-control {
-      border-radius: 5px;
-    }
-    .custom-card .btn {
-      background-color: #007bff;
-      border-color: #007bff;
-      border-radius: 5px;
-      padding: 10px 20px;
-    }
-    .card-plato {
-      margin-bottom: 20px;
-    }
-    .hidden {
-      display: none;
-    }
-    .row {
-      display: flex;
-      flex-wrap: wrap;
-    }
-    .card-plato {
-      flex: 1 0 30%;
-      margin: 15px;
-    }
-  </style>
-</head>
-<body class="text-center">
-  <nav class="container d-flex flex-wrap justify-content-center py-3 mb-4 text-dark border-bottom">
-    <a href="/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-decoration-none text-dark">
-      <span class="fs-4">RestaurantNow</span>
-    </a>
-    <ul class="nav nav-pills">
-      <li class="nav-item"><a href="/restaurantes" class="nav-link text-dark" aria-current="page">Restaurantes</a></li>
-      <% if (!user) { %>
-        <li class="nav-item"><a href="/login" class="nav-link text-dark">Iniciar Sesión</a></li>
-        <li class="nav-item"><a href="/registro" class="nav-link text-dark">Registrarse</a></li>
-      <% } else { %>
-        <li class="nav-item"><a href="/user/perfil" class="nav-link text-dark">Perfil</a></li>
-        <li class="nav-item"><a href="/user/mis-pedidos" class="nav-link text-dark">Mis Pedidos</a></li>
-        <li class="nav-item"><a href="/logout" class="nav-link text-dark">Cerrar Sesión</a></li>
-      <% } %>
-    </ul>
-  </nav>
+    <style>
+      .custom-card {
+        border: 1px solid #e0e0e0;
+        border-radius: 10px;
+        background-color: #f8f9fa;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+        margin-top: 20px;
+      }
+      .custom-card h5 {
+        color: #495057;
+        margin-bottom: 15px;
+      }
+      .form-control {
+        border-radius: 5px;
+      }
+      .custom-card .btn {
+        background-color: #007bff;
+        border-color: #007bff;
+        border-radius: 5px;
+        padding: 10px 20px;
+      }
+      .card-plato {
+        margin-bottom: 20px;
+      }
+      .hidden {
+        display: none;
+      }
+      .row {
+        display: flex;
+        flex-wrap: wrap;
+      }
+      .card-plato {
+        flex: 1 0 30%;
+        margin: 15px;
+      }
+    </style>
+  </head>
+  <body class="text-center">
+    <nav
+      class="container d-flex flex-wrap justify-content-center py-3 mb-4 text-dark border-bottom"
+    >
+      <a
+        href="/"
+        class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-decoration-none text-dark"
+      >
+        <span class="fs-4">RestaurantNow</span>
+      </a>
+      <ul class="nav nav-pills">
+        <li class="nav-item">
+          <a href="/restaurantes" class="nav-link text-dark" aria-current="page"
+            >Restaurantes</a
+          >
+        </li>
+        <% if (!user) { %>
+        <li class="nav-item">
+          <a href="/login" class="nav-link text-dark">Iniciar Sesión</a>
+        </li>
+        <li class="nav-item">
+          <a href="/registro" class="nav-link text-dark">Registrarse</a>
+        </li>
+        <% } else { %>
+        <li class="nav-item">
+          <a href="/user/perfil" class="nav-link text-dark">Perfil</a>
+        </li>
+        <li class="nav-item">
+          <a href="/user/mis-pedidos" class="nav-link text-dark">Mis Pedidos</a>
+        </li>
+        <li class="nav-item">
+          <a href="/logout" class="nav-link text-dark">Cerrar Sesión</a>
+        </li>
+        <% } %>
+      </ul>
+    </nav>
 
-  <main class="container">
-    <section>
-      <% restaurants.forEach((restaurant) => { %>
-      <div class="p-5 text-center bg-image rounded-3" style="background-image: url('https://mdbcdn.b-cdn.net/img/new/slides/041.webp'); height: 25%;">
-        <div class="mask" style="background-color: rgba(0, 0, 0, 0.6);">
-          <div class="d-flex justify-content-center align-items-center h-100">
-            <div class="text-white">
-              <h1 class="mb-3"><%= restaurant.nombre %></h1>
-              <h4 class="mb-3"><%= restaurant.descripcion %></h4>
+    <main class="container">
+      <!-- Información del restaurante -->
+      <section>
+        <% restaurants.forEach((restaurant) => { %>
+        <div
+          class="p-5 text-center bg-image rounded-3"
+          style="
+            background-image: url('https://mdbcdn.b-cdn.net/img/new/slides/041.webp');
+            height: 25%;
+          "
+        >
+          <div class="mask" style="background-color: rgba(0, 0, 0, 0.6)">
+            <div class="d-flex justify-content-center align-items-center h-100">
+              <div class="text-white">
+                <h1 class="mb-3"><%= restaurant.nombre %></h1>
+                <h4 class="mb-3"><%= restaurant.descripcion %></h4>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-      <% }) %>
-    </section>
+        <% }) %>
+      </section>
 
-    <section class="container">
-      <h2>Platos Disponibles</h2>
-      <form action="/reservar" method="POST">
-        <!-- Barra de búsqueda -->
-        <div class="mb-3">
-          <input id="searchInput" type="text" class="form-control" placeholder="Buscar platos...">
-        </div>
+      <!-- Platos disponibles -->
+      <section class="container">
+        <h2>Platos Disponibles</h2>
+        <form action="/reservar" method="POST">
+          <!-- Barra de búsqueda -->
+          <div class="mb-3">
+            <input
+              id="searchInput"
+              type="text"
+              class="form-control"
+              placeholder="Buscar platos..."
+            />
+          </div>
 
-        <div id="platosList" class="row">
-          <% platos.forEach((plato) => { %>
+          <div id="platosList" class="row">
+            <% platos.forEach((plato) => { %>
             <div class="card card-plato">
               <div class="card-body">
                 <h5 class="card-title"><%= plato.nombre %></h5>
                 <p class="card-text">Precio: $<%= plato.precio.toFixed(2) %></p>
                 <div class="form-check">
-                  <input class="form-check-input" type="checkbox" name="platosSeleccionados" value="<%= plato.id_plato %>" aria-label="...">
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    name="platosSeleccionados"
+                    value="<%= plato.id_plato %>"
+                    aria-label="..."
+                  />
                   <label class="form-check-label">Seleccionar</label>
                 </div>
               </div>
             </div>
-          <% }) %>
-        </div>
-        
-        <div id="precio-final" class="mt-3">Precio Final: $0.00</div>
-        <div class="custom-card">
-          <h5>Selecciona la Fecha y Hora</h5>
-          <div class="row">
-            <div class="col-md-6">
-              <label for="fecha" class="form-label">Fecha:</label>
-              <div class="input-group">
-                <div class="input-group-prepend">
-                  <span class="input-group-text"><i class="bi bi-calendar-date"></i></span>
+            <% }) %>
+          </div>
+
+          <!-- Precio final -->
+          <div id="precio-final" class="mt-3">Precio Final: $0.00</div>
+
+          <!-- Selección de Fecha y Hora -->
+          <div class="custom-card">
+            <h5>Selecciona la Fecha y Hora</h5>
+            <div class="row">
+              <!-- Fecha -->
+              <div class="col-md-6">
+                <label for="fecha" class="form-label">Fecha:</label>
+                <div class="input-group">
+                  <div class="input-group-prepend">
+                    <span class="input-group-text"
+                      ><i class="bi bi-calendar-date"></i
+                    ></span>
+                  </div>
+                  <input
+                    type="date"
+                    name="fecha"
+                    id="fecha"
+                    class="form-control"
+                    required
+                  />
                 </div>
-                <input type="date" name="fecha" id="fecha" class="form-control" required>
               </div>
-            </div>
-  
-            <div class="col-md-6">
-              <label for="hora" class="form-label">Hora:</label>
-              <div class="input-group">
-                <div class="input-group-prepend">
-                  <span class="input-group-text"><i class="bi bi-clock"></i></span>
+              <div class="form-group">
+                <label for="hora">Hora de Reserva</label>
+                <h3>COMIDA</h3>
+                <div>
+                  <% franjas.forEach(franja => { %> <% if (franja.franja_inicio
+                  < '18:00') { %>
+                  <button><%= franja.franja_inicio %></button>
+                  <% } %> <% }); %>
                 </div>
-                <select name="hora" id="hora" class="form-control" required>
-                  <% horarios.forEach((horario) => { %>
-                    <option value="<%= horario.hora %>" <%= horario.disponible === 1 ? "" : "disabled" %> >
-                      <%= horario.hora %> <%= horario.disponible === 1 ? "" : "(Reservado)" %>
-                    </option>
-                  <% }) %>
-                </select>
+
+                <h3>CENA</h3>
+                <div>
+                  <% franjas.forEach(franja => { %> <% if (franja.franja_inicio
+                  >= '18:00') { %>
+                  <button><%= franja.franja_inicio %></button>
+                  <% } %> <% }); %>
+                </div>
               </div>
             </div>
           </div>
 
-          <input type="hidden" name="id_restaurante" value="<%= id_restaurante %>">
+          <input
+            type="hidden"
+            name="id_restaurante"
+            value="<%= id_restaurante %>"
+          />
           <button type="submit" class="btn btn-primary mt-3">Reservar</button>
         </form>
-      </div>
-    </section>
-  </main>
+      </section>
+    </main>
 
-  <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      const fechaInput = document.getElementById('fecha');
-      const horaSelect = document.getElementById('hora');
-      const searchInput = document.getElementById('searchInput');
-      const platosList = document.getElementById('platosList');
-      const checkboxes = document.querySelectorAll('.form-check-input');
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const fechaInput = document.getElementById("fecha");
+        const horaSelect = document.getElementById("hora");
+        const searchInput = document.getElementById("searchInput");
+        const platosList = document.getElementById("platosList");
+        const checkboxes = document.querySelectorAll(".form-check-input");
+        const form = document.querySelector("form");
 
-      // Filtrado de platos
-      searchInput.addEventListener('input', function() {
-        const query = searchInput.value.toLowerCase();
-        const platos = platosList.getElementsByClassName('card');
+        // Filtrado de platos
+        searchInput.addEventListener("input", function () {
+          const query = searchInput.value.toLowerCase();
+          const platos = platosList.getElementsByClassName("card");
 
-        for (let plato of platos) {
-          const text = plato.querySelector('.card-title').textContent.toLowerCase();
-          plato.style.display = text.includes(query) ? '' : 'none';
-        }
-      });
+          for (let plato of platos) {
+            const text = plato
+              .querySelector(".card-title")
+              .textContent.toLowerCase();
+            plato.style.display = text.includes(query) ? "" : "none";
+          }
+        });
 
-      // Actualización del precio final
-      checkboxes.forEach(function(checkbox) {
-        checkbox.addEventListener('change', function() {
-          let precioTotal = 0;
-          checkboxes.forEach(function(checkbox) {
-            if (checkbox.checked) {
-              const precio = parseFloat(checkbox.closest('.card').querySelector('.card-text').textContent.split('Precio: $')[1]);
-              precioTotal += precio;
-            }
+        // Actualización del precio final
+        checkboxes.forEach(function (checkbox) {
+          checkbox.addEventListener("change", function () {
+            let precioTotal = 0;
+            checkboxes.forEach(function (checkbox) {
+              if (checkbox.checked) {
+                const precio = parseFloat(
+                  checkbox
+                    .closest(".card")
+                    .querySelector(".card-text")
+                    .textContent.split("Precio: $")[1]
+                );
+                precioTotal += precio;
+              }
+            });
+            document.getElementById(
+              "precio-final"
+            ).textContent = `Precio Final: $${precioTotal.toFixed(2)}`;
           });
-          document.getElementById('precio-final').textContent = `Precio Final: $${precioTotal.toFixed(2)}`;
+        });
+
+        // Cambiar horarios según fecha
+        fechaInput.addEventListener("change", function () {
+          const fecha = fechaInput.value;
+          const idRestaurante = "<%= id_restaurante %>";
+
+          fetch(
+            `/horariosDisponibles?fecha=${fecha}&id_restaurante=${idRestaurante}`
+          )
+            .then((response) => response.json())
+            .then((horarios) => {
+              horaSelect.innerHTML = "";
+              horarios.forEach((horario) => {
+                const option = document.createElement("option");
+                option.value = horario.hora;
+                option.textContent = `${horario.hora} - ${
+                  horario.reservado === 1 ? "Reservado" : "Disponible"
+                }`;
+                if (horario.reservado === 1) {
+                  option.disabled = true;
+                }
+                horaSelect.appendChild(option);
+              });
+            });
+        });
+
+        // Verificar que el valor de la hora está correctamente configurado antes de enviar
+        form.addEventListener("submit", function (event) {
+          if (!horaSelect.value) {
+            event.preventDefault();
+            alert("Por favor, selecciona una hora.");
+          }
         });
       });
-
-      // Cambiar horarios según la fecha seleccionada
-      fechaInput.addEventListener('change', function() {
-        const fechaSeleccionada = fechaInput.value;
-
-        fetch(`/horariosDisponibles?fecha=${fechaSeleccionada}&id_restaurante=<%= id_restaurante %>`)
-          .then(response => response.json())
-          .then(data => {
-            horaSelect.innerHTML = '';
-            data.forEach(horario => {
-              const option = document.createElement('option');
-              option.value = horario.hora;
-              option.textContent = horario.hora + (horario.disponible === 1 ? "" : " (Reservado)");
-              option.disabled = horario.disponible !== 1;
-              horaSelect.appendChild(option);
-            });
-          });
-      });
-    });
-  </script>
-</body>
+    </script>
+  </body>
 </html>

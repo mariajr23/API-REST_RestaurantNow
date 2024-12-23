@@ -1,0 +1,37 @@
+<form id="configurar-horarios" method="POST" action="/configurar-horarios">
+  <label>Días de la semana:</label>
+  <div>
+    <label
+      ><input type="checkbox" name="dias_semana[]" value="0" /> Domingo</label
+    >
+    <label
+      ><input type="checkbox" name="dias_semana[]" value="1" /> Lunes</label
+    >
+    <label
+      ><input type="checkbox" name="dias_semana[]" value="2" /> Martes</label
+    >
+    <label
+      ><input type="checkbox" name="dias_semana[]" value="3" /> Miércoles</label
+    >
+    <label
+      ><input type="checkbox" name="dias_semana[]" value="4" /> Jueves</label
+    >
+    <label
+      ><input type="checkbox" name="dias_semana[]" value="5" /> Viernes</label
+    >
+    <label
+      ><input type="checkbox" name="dias_semana[]" value="6" /> Sábado</label
+    >
+  </div>
+
+  <label>Hora de inicio:</label>
+  <input type="time" name="hora_inicio" required />
+
+  <label>Hora de fin:</label>
+  <input type="time" name="hora_fin" required />
+
+  <label>Intervalo (minutos):</label>
+  <input type="number" name="intervalo_minutos" min="15" step="15" required />
+
+  <button type="submit">Guardar</button>
+</form>
