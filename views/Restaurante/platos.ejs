@@ -2,22 +2,53 @@
 <html lang="es">
   <head>
     <link
+      href="/node_modules/bootstrap/dist/css/bootstrap.min.css"
       rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.0/css/bootstrap.min.css"
     />
+
+    <script src="/node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <meta charset="utf-8" />
     <meta
       name="viewport"
       content="width=device-width, user-scalable=no, initial-scale=1.0, minimum-scale=1.0"
     />
     <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-    <title>Admin Dashboard - RestaurantNow</title>
+
+    <!-- Favicons -->
+    <link href="assets/img/favicon.png" rel="icon" />
+    <link href="assets/img/apple-touch-icon.png" rel="apple-touch-icon" />
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&family=Inter:wght@100;200;300;400;500;600;700;800;900&family=Amatic+SC:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Vendor CSS Files -->
+    <link
+      href="assets/vendor/bootstrap/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="assets/vendor/bootstrap-icons/bootstrap-icons.css"
+      rel="stylesheet"
+    />
+    <link href="assets/vendor/aos/aos.css" rel="stylesheet" />
+    <link
+      href="assets/vendor/glightbox/css/glightbox.min.css"
+      rel="stylesheet"
+    />
+    <link href="assets/vendor/swiper/swiper-bundle.min.css" rel="stylesheet" />
+
+    <!-- Main CSS File -->
+    <link href="assets/css/main.css" rel="stylesheet" />
     <link href="assets/css/estilos.css" rel="stylesheet" />
-    <link rel="icon" href="/favicon.png" />
   </head>
   <body>
     <nav class="sidebar">
-      <h4>Admin Menu</h4>
+      <h4>Restaurante Menu</h4>
       <ul class="nav flex-column">
         <li class="nav-item">
           <a class="nav-link" href="/restaurante/reservas"
@@ -38,27 +69,159 @@
     <main>
       <div class="main-content">
         <header>
-          <h1 class="text-center">Dashboard</h1>
+          <h1 class="text-center">Platos</h1>
         </header>
 
-        <div class="container">
-          <div class="row">
-            <div class="col-md-6 col-lg-4 dashboard-card">
-              <div class="card">
-                <div class="card-body">
-                  <h5 class="card-title">Total Restaurantes</h5>
+        <h1 class="text-center my-4">Gestionar Platos</h1>
+
+        <!-- Tabla de Platos -->
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Descripción</th>
+              <th>Precio</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (!platos || platos.length === 0) { %>
+            <tr>
+              <td colspan="4">No hay platos disponibles</td>
+            </tr>
+            <% } else { %> <% platos.forEach(plato => { %>
+            <tr>
+              <td><%= plato.nombre_plato %></td>
+              <td><%= plato.descripcion_plato %></td>
+              <td>$<%= plato.precio %></td>
+              <td>
+                <!-- Botón para editar -->
+                <button
+                  class="btn btn-warning btn-sm"
+                  data-toggle="modal"
+                  data-target="#editModal<%= plato.id_plato %>"
+                >
+                  Editar
+                </button>
+
+                <!-- Modal para editar -->
+                <div
+                  class="modal fade"
+                  id="editModal<%= plato.id_plato %>"
+                  tabindex="-1"
+                  role="dialog"
+                  aria-hidden="true"
+                >
+                  <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                      <form
+                        action="/restaurante/platos/edit/<%= plato.id_plato %>"
+                        method="POST"
+                      >
+                        <div class="modal-header">
+                          <h5 class="modal-title">Editar Plato</h5>
+                          <button
+                            type="button"
+                            class="close"
+                            data-dismiss="modal"
+                            aria-label="Close"
+                          >
+                            <span aria-hidden="true">&times;</span>
+                          </button>
+                        </div>
+                        <div class="modal-body">
+                          <div class="form-group">
+                            <label for="nombre">Nombre</label>
+                            <input
+                              type="text"
+                              name="nombre"
+                              class="form-control"
+                              value="<%= plato.nombre %>"
+                              required
+                            />
+                          </div>
+                          <div class="form-group">
+                            <label for="descripcion">Descripción</label>
+                            <input
+                              type="text"
+                              name="descripcion"
+                              class="form-control"
+                              value="<%= plato.descripcion %>"
+                              required
+                            />
+                          </div>
+                          <div class="form-group">
+                            <label for="precio">Precio</label>
+                            <input
+                              type="number"
+                              name="precio"
+                              class="form-control"
+                              value="<%= plato.precio %>"
+                              required
+                            />
+                          </div>
+                        </div>
+                        <div class="modal-footer">
+                          <button type="submit" class="btn btn-primary">
+                            Guardar cambios
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-            <div class="col-md-6 col-lg-4 dashboard-card">
-              <div class="card">
-                <div class="card-body">
-                  <h5 class="card-title">Total Reservas</h5>
-                </div>
-              </div>
-            </div>
+                <!-- Botón para Mostrar -->
+
+                <form
+                  action="/restaurante/platos/toggle/<%= plato.id_plato %>"
+                  method="POST"
+                  style="display: inline"
+                >
+                  <button class="btn btn-info btn-sm">
+                    <%= plato.visible ? 'Ocultar' : 'Mostrar' %>
+                  </button>
+                </form>
+                <!-- Botón para eliminar -->
+                <form
+                  action="/restaurante/platos/delete/<%= plato.id_plato %>"
+                  method="POST"
+                  style="display: inline"
+                >
+                  <button
+                    class="btn btn-danger btn-sm"
+                    onclick="return confirm('¿Estás seguro de eliminar este plato?')"
+                  >
+                    Eliminar
+                  </button>
+                </form>
+              </td>
+            </tr>
+            <% }); %> <% } %>
+          </tbody>
+        </table>
+
+        <!-- Formulario para añadir plato -->
+        <h3 class="mt-4">Añadir Nuevo Plato</h3>
+        <form action="/restaurante/platos/add" method="POST">
+          <div class="form-group">
+            <label for="nombre">Nombre</label>
+            <input type="text" name="nombre" class="form-control" required />
           </div>
-        </div>
+          <div class="form-group">
+            <label for="descripcion">Descripción</label>
+            <input
+              type="text"
+              name="descripcion"
+              class="form-control"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <label for="precio">Precio</label>
+            <input type="number" name="precio" class="form-control" required />
+          </div>
+          <button type="submit" class="btn btn-success mt-2">Añadir</button>
+        </form>
       </div>
     </main>
     <footer
@@ -97,7 +260,8 @@
         </li>
       </ul>
     </footer>
-
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="../assets/dist/js/bootstrap.bundle.min.js"></script>
   </body>
 </html>

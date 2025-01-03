@@ -8,6 +8,14 @@ const { conexion, buscarRestaurantes } = require("../database/bd");
 const { isAuthenticated, isAdmin } = require("../middleware/auth");
 const { User } = require("../models/User");
 
+router.get("/verificar-sesion", (req, res) => {
+  if (req.session && req.session.user) {
+    res.json({ mensaje: "Sesión activa", usuario: req.session.user });
+  } else {
+    res.status(401).json({ mensaje: "No hay sesión activa" });
+  }
+});
+
 //Configuracion nodemailer
 const transporter = nodemailer.createTransport({
   service: "Gmail",
@@ -146,6 +154,7 @@ router.post("/registrar/restaurante", async (req, res) => {
   }
 });
 
+//Rutas para la administracion de Restaurantes
 router.post("/iniciarsesion-restaurante", (req, res) => {
   const { email, contrasena } = req.body;
 
@@ -180,10 +189,7 @@ router.post("/iniciarsesion-restaurante", (req, res) => {
           telefono: user.telefono,
         };
 
-        console.log("Restaurante autenticado:", {
-          id: user.id_usuario,
-          email: user.email,
-        });
+        console.log("Restaurante autenticado:", req.session.user);
         verificarRestaurante(req, res);
       } else {
         return res
@@ -256,9 +262,103 @@ router.get("/restaurante/dashboard", (req, res) => {
 router.get("/restaurante/reservas", (req, res) => {
   res.render("restaurante/reservas");
 });
-router.get("/restaurante/platos", (req, res) => {
-  res.render("restaurante/platos");
+
+//Gestion de platos
+router.get("/restaurante/platos", isAuthenticated, async (req, res) => {
+  if (!req.session || !req.session.user) {
+    return res
+      .status(400)
+      .send("Usuario no autenticado o ID de usuario no válido");
+  }
+
+  // Acceder al id_usuario de la sesión
+  const idUsuario = req.session.user.id;
+  console.log("ID de usuario:", idUsuario);
+
+  conexion.query(
+    "SELECT u.id_usuario, r.id_restaurante, p.id_plato, p.nombre AS nombre_plato, p.descripcion AS descripcion_plato, p.precio FROM usuarios u JOIN restaurantes r ON u.id_usuario = r.id_usuario JOIN platos p ON r.id_restaurante = p.id_restaurante WHERE u.id_usuario = ?",
+    [idUsuario],
+    (error, results) => {
+      if (error) {
+        console.error("Error en la consulta:", error);
+        return res.status(500).send("Error al obtener los platos");
+      }
+
+      if (!Array.isArray(results) || results.length === 0) {
+        return res.render("restaurante/platos", { platos: [] });
+      }
+
+      console.log("Platos:", results);
+      res.render("restaurante/platos", { platos: results });
+    }
+  );
 });
+router.post("/restaurante/platos/edit/:id_plato", (req, res) => {
+  const { id_plato } = req.params;
+  const { nombre, descripcion, precio } = req.body;
+
+  // Lógica para actualizar el plato en la base de datos
+  conexion.query(
+    "UPDATE platos SET nombre = ?, descripcion = ?, precio = ? WHERE id_plato = ?",
+    [nombre, descripcion, precio, id_plato],
+    (err, result) => {
+      if (err) {
+        console.error("Error al actualizar el plato:", err);
+        return res.status(500).send("Error al actualizar el plato");
+      }
+
+      // Verifica si la consulta afectó alguna fila (esto significa que el plato fue actualizado)
+      if (result.affectedRows > 0) {
+        console.log(
+          `Plato ${id_plato} actualizado: Nombre: ${nombre}, Descripción: ${descripcion}, Precio: ${precio}`
+        );
+        // Asegúrate de redirigir una sola vez
+        return res.redirect("/restaurante/platos"); // Redirige después de actualizar correctamente
+      } else {
+        // Si no se actualizó nada, informa al usuario
+        console.log(`No se encontró el plato con ID ${id_plato}`);
+        return res.status(404).send("Plato no encontrado");
+      }
+    }
+  );
+});
+router.post("/restaurante/platos/delete/:id_plato", (req, res) => {
+  const { id_plato } = req.params;
+
+  conexion.query(
+    "UPDATE platos SET visible = FALSE WHERE id_plato = ?",
+    [id_plato],
+    (err, result) => {
+      if (err) {
+        console.error("Error al eliminar el plato:", err);
+        return res.status(500).send("Error al eliminar el plato");
+      }
+
+      if (result.affectedRows > 0) {
+        console.log(`Plato ${id_plato} eliminado`);
+        return res.redirect("/restaurante/platos");
+      } else {
+        console.log(`No se encontró el plato con ID ${id_plato}`);
+        return res.status(404).send("Plato no encontrado");
+      }
+    }
+  );
+});
+router.post("/restaurante/platos/toggle/:id", (req, res) => {
+  const platoId = req.params.id;
+  const visible = req.body.visible;
+
+  // Actualizar en la base de datos
+  const query = "UPDATE platos SET visible = ? WHERE id_plato = ?";
+  conexion.query(query, [visible, platoId], (err, result) => {
+    if (err) {
+      console.error(err);
+      return res.json({ success: false });
+    }
+    res.json({ success: true });
+  });
+});
+
 router.get("/restaurante/perfil", (req, res) => {
   res.render("restaurante/perfil");
 });
@@ -649,11 +749,11 @@ router.get("/vistaRest", (req, res) => {
 
   const restauranteQuery =
     "SELECT * FROM restaurantes WHERE id_restaurante = ?";
-  const platosQuery = "SELECT * FROM platos WHERE id_restaurante = ?";
+  const platosQuery =
+    "SELECT * FROM platos WHERE id_restaurante = ? AND visible = TRUE";
 
   //Poner cuando se crean los horarios en la pagina de dashboard restaurantes
   // generarFranjas();
-  // Actualización: Consulta a la tabla franjas_horarias para obtener las franjas disponibles
   const franjasQuery = `
     SELECT fh.franja_inicio, fh.franja_fin, fh.disponibilidad
     FROM franjas_horarias fh

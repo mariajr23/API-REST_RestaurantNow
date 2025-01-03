@@ -18,7 +18,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(
   session({
-    secret: "tu_secreto",
+    secret: "clave",
     resave: false,
     saveUninitialized: false,
     cookie: { secure: false },
