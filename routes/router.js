@@ -1,13 +1,12 @@
 const express = require("express");
 const router = express.Router();
-const path = require("path");
 const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
 const saltRounds = 10;
 const nodemailer = require("nodemailer");
 const crypto = require("crypto");
 const { conexion, buscarRestaurantes } = require("../database/bd");
-const { isAdmin } = require("../middleware/auth");
+const { isAuthenticated, isAdmin } = require("../middleware/auth");
+const { User } = require("../models/User");
 
 //Configuracion nodemailer
 const transporter = nodemailer.createTransport({
@@ -31,7 +30,7 @@ router.get("/", (req, res) => {
 });
 
 router.get("/restaurantes", (req, res) => {
-  const query = "SELECT * FROM restaurantes";
+  const query = "SELECT * FROM restaurantes WHERE estado = 'aceptado'";
 
   conexion.query(query, (error, results) => {
     if (error) {
@@ -58,84 +57,100 @@ router.get("/login", (req, res) => {
   res.render("login");
 });
 
+router.post("/login", async (req, res) => {
+  const { email, contrasena } = req.body;
+
+  try {
+    const usuario = await User.findOne({ where: { email } });
+    if (!usuario)
+      return res.status(404).json({ error: "Usuario no encontrado" });
+
+    const match = await bcrypt.compare(contrasena, usuario.contrasena);
+    if (!match) return res.status(401).json({ error: "Contraseña incorrecta" });
+
+    const token = jwt.sign({ id: usuario.id, rol: usuario.rol }, "SECRET_KEY", {
+      expiresIn: "1h",
+    });
+
+    res.status(200).json({ mensaje: "Login exitoso", token, rol: usuario.rol });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error al iniciar sesión" });
+  }
+});
+
 router.get("/registro", (req, res) => {
   res.render("registro");
 });
 
-router.post("/registrar", (req, res) => {
-  const { nombre, apellido, email, contrasena, contrasenaConfirmar, telefono } =
-    req.body;
+router.post("/registrar/cliente", async (req, res) => {
+  const { nombre, email, contrasena, telefono } = req.body;
 
-  if (contrasena !== contrasenaConfirmar) {
-    return res.status(400).send("Las contraseñas no coinciden");
-  }
-
-  bcrypt.hash(contrasena, saltRounds, (err, hashedPassword) => {
-    if (err) {
-      console.error("Error al encriptar la contraseña:", err);
-      return res.status(500).send("Error al registrar el usuario");
-    }
-
-    const query =
-      "INSERT INTO usuarios (nombre, apellido, email, contrasena, telefono) VALUES (?, ?, ?, ?, ?)";
+  try {
+    const hashedPassword = await bcrypt.hash(contrasena, 10);
+    const query = `INSERT INTO usuarios (nombre, email, contrasena, telefono, rol) 
+                   VALUES (?, ?, ?, ?, 'usuario')`;
 
     conexion.query(
       query,
-      [nombre, apellido, email, hashedPassword, telefono],
-      (error) => {
+      [nombre, email, hashedPassword, telefono],
+      (error, results) => {
         if (error) {
-          console.error("Error al insertar el usuario:", error);
-          return res.status(500).send("Error al registrar el usuario");
+          console.error(error);
+          return res
+            .status(500)
+            .json({ error: "Error al registrar el cliente" });
         }
 
-        res.redirect("/login"); // Redirige al usuario a la página de inicio de sesión
+        return res.redirect("/login");
       }
     );
-  });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "Error al registrar el cliente" });
+  }
 });
 
-router.post("/registrar-restaurante", async (req, res) => {
-  const {
-    nombreRestaurante,
-    emailRestaurante,
-    telefonoRestaurante,
-    direccionRestaurante,
-  } = req.body;
-
-  // Validación de los datos
-  if (
-    !nombreRestaurante ||
-    !emailRestaurante ||
-    !telefonoRestaurante ||
-    !direccionRestaurante
-  ) {
-    return res.status(400).send("Todos los campos son obligatorios.");
-  }
+router.post("/registrar/restaurante", async (req, res) => {
+  const { nombre, email, contrasena, telefono, direccion } = req.body;
 
   try {
-    const query = `
-          INSERT INTO restaurantes (nombre_restaurante, email_restaurante, telefono_restaurante, direccion_restaurante, estado)
-          VALUES (?, ?, ?, ?, 'pendiente')
-      `;
-    await conexion.query(query, [
-      nombreRestaurante,
-      emailRestaurante,
-      telefonoRestaurante,
-      direccionRestaurante,
-    ]);
+    // Encriptar la contraseña
+    const hashedPassword = await bcrypt.hash(contrasena, 10);
 
-    // Respuesta exitosa
-    res.redirect("/"); // Redirige a una página de confirmación o inicio
+    // Consulta para insertar el usuario
+    const queryUsuario = `INSERT INTO usuarios (nombre, email, contrasena, telefono, rol) 
+                          VALUES (?, ?, ?, ?, 'restaurante')`;
+
+    conexion.query(
+      queryUsuario,
+      [nombre, email, hashedPassword, telefono],
+      (errorUsuario, resultsUsuario) => {
+        if (errorUsuario) {
+          console.error("Error al registrar el usuario:", errorUsuario);
+          return res
+            .status(500)
+            .json({ error: "Error al registrar el restaurante" });
+        }
+
+        console.log(
+          "Usuario registrado con éxito, ID:",
+          resultsUsuario.insertId
+        );
+        return res.redirect("/login");
+      }
+    );
   } catch (error) {
-    console.error("Error al registrar el restaurante:", error);
-    res.status(500).send("Hubo un error al procesar la solicitud.");
+    console.error("Error en el proceso de registro:", error);
+    return res.status(500).json({ error: "Error al registrar el restaurante" });
   }
 });
 
-router.post("/iniciarsesion-usuario", (req, res) => {
+router.post("/iniciarsesion-restaurante", (req, res) => {
   const { email, contrasena } = req.body;
 
-  const query = "SELECT * FROM usuarios WHERE email = ?";
+  const query =
+    "SELECT * FROM usuarios WHERE email = ? AND rol = 'restaurante'";
 
   conexion.query(query, [email], (error, results) => {
     if (error) {
@@ -158,36 +173,157 @@ router.post("/iniciarsesion-usuario", (req, res) => {
       }
 
       if (isMatch) {
-        // Generar el token
-        const token = jwt.sign(
-          { id: user.id_usuario, nombre: user.nombre, email: user.email },
-          "tu_clave_secreta",
-          { expiresIn: "1h" }
-        );
-
-        // Guardar el token en una cookie
-        res.cookie("token", token, { httpOnly: true });
-
-        // Guardar el usuario en la sesión
         req.session.user = {
           id: user.id_usuario,
           nombre: user.nombre,
-          telefono: user.telefono, // Asegúrate de incluir el teléfono
+          email: user.email,
+          telefono: user.telefono,
+        };
+
+        console.log("Restaurante autenticado:", {
+          id: user.id_usuario,
+          email: user.email,
+        });
+        verificarRestaurante(req, res);
+      } else {
+        return res
+          .status(401)
+          .send("Correo electrónico o contraseña incorrectos");
+      }
+    });
+  });
+});
+
+router.get("/restaurante/crear", (req, res) => {
+  const userId = req.session.user?.id;
+  conexion.query(
+    "SELECT nombre, apellido, email, telefono FROM usuarios WHERE id_usuario = ?",
+    [userId],
+    (err, results) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).send("Error al obtener datos del usuario.");
+      }
+
+      const usuario = results[0];
+
+      res.render("restaurante/crear", { user: usuario });
+    }
+  );
+});
+router.post("/restaurante/crear", isAuthenticated, (req, res) => {
+  const { nombre, descripcion, direccion, telefono } = req.body;
+  const id_usuario = req.session.user.id;
+
+  const queryExistente = "SELECT * FROM restaurantes WHERE id_usuario = ?";
+  conexion.query(queryExistente, [id_usuario], (err, results) => {
+    if (err) {
+      return res.status(500).send("Error en la base de datos");
+    }
+
+    if (results.length > 0) {
+      return res
+        .status(400)
+        .send("Este usuario ya tiene un restaurante registrado.");
+    }
+    console.log("Datos del restaurante:", {
+      nombre,
+      descripcion,
+      direccion,
+      telefono,
+      id_usuario,
+    });
+
+    const queryRestaurante =
+      "INSERT INTO restaurantes (nombre, descripcion, direccion, telefono, id_usuario, estado) VALUES (?, ?, ?, ?, ?, 'pendiente')";
+    conexion.query(
+      queryRestaurante,
+      [nombre, descripcion, direccion, telefono, id_usuario],
+      (err, results) => {
+        if (err) {
+          return res.status(500).send("Error al registrar el restaurante");
+        }
+
+        res.redirect("/restaurante/dashboard");
+      }
+    );
+  });
+});
+
+router.get("/restaurante/dashboard", (req, res) => {
+  res.render("restaurante/dashboard");
+});
+router.get("/restaurante/reservas", (req, res) => {
+  res.render("restaurante/reservas");
+});
+router.get("/restaurante/platos", (req, res) => {
+  res.render("restaurante/platos");
+});
+router.get("/restaurante/perfil", (req, res) => {
+  res.render("restaurante/perfil");
+});
+// Middleware para verificar si el usuario tiene un restaurante asociado
+const verificarRestaurante = (req, res, next) => {
+  // Suponiendo que req.user tiene la información del usuario autenticado
+  const userId = req.session.user?.id;
+
+  const query = `SELECT id_restaurante FROM restaurantes WHERE id_usuario = ?`;
+
+  conexion.query(query, [userId], (err, results) => {
+    if (err) {
+      return res.status(500).send("Error en la base de datos");
+    }
+
+    if (results.length > 0 && results[0].id_restaurante) {
+      return res.redirect("restaurante/dashboard");
+    } else {
+      return res.redirect("restaurante/crear");
+    }
+  });
+};
+
+router.post("/iniciarsesion-usuario", (req, res) => {
+  const { email, contrasena } = req.body;
+
+  const query =
+    "SELECT * FROM usuarios WHERE email = ? AND (rol = 'usuario' OR rol = 'admin')";
+
+  conexion.query(query, [email], (error, results) => {
+    if (error) {
+      console.error("Error en la consulta:", error);
+      return res.status(500).send("Error en el servidor");
+    }
+
+    if (results.length === 0) {
+      return res
+        .status(401)
+        .send("Correo electrónico o contraseña incorrectos");
+    }
+
+    const user = results[0];
+
+    bcrypt.compare(contrasena, user.contrasena, (err, isMatch) => {
+      if (err) {
+        console.error("Error al comparar contraseñas:", err);
+        return res.status(500).send("Error en el servidor");
+      }
+
+      if (isMatch) {
+        req.session.user = {
+          id: user.id_usuario,
+          nombre: user.nombre,
+          telefono: user.telefono,
           email: user.email,
         };
 
-        // Mostrar el email y el token en la consola
         console.log("Usuario autenticado:", {
           email: user.email,
-          token: token,
         });
 
-        if (user.email === "admin@admin") {
-          // Redirigir al dashboard del administrador
+        if (user.email === "admin@admin.com") {
           res.redirect("/admin/dashboard");
         } else {
-          // Redirigir al perfil de usuario
-          res.redirect("/user/perfil");
+          res.redirect("/restaurantes");
         }
       } else {
         return res
@@ -266,32 +402,17 @@ router.post("/recuperar-password", (req, res) => {
   });
 });
 
-// Middleware para proteger rutas privadas y verificar rol de admin
-const isAuthenticated = (req, res, next) => {
-  if (!req.user) {
-    return res.status(403).render("acceso-denegado"); // Renderiza la vista de acceso denegado
-  }
-
-  // Verificar si el usuario es admin
-  if (req.user.email !== "admin@admin") {
-    return res.status(403).render("acceso-denegado"); // Renderiza la vista de acceso denegado
-  }
-
-  next();
-};
-
 router.get("/acceso-denegado", (req, res) => {
   res.status(403).render("acceso-denegado");
 });
 
-// Rutas de administración protegidas
-router.use("/admin", isAuthenticated);
+router.use("/admin", isAdmin);
 
-router.get("/admin/dashboard", isAdmin, (req, res) => {
+router.get("/admin/dashboard", (req, res) => {
   res.render("admin/dashboard");
 });
 
-router.get("/admin/adminRest", isAdmin, (req, res) => {
+router.get("/admin/adminRest", (req, res) => {
   conexion.query(
     "SELECT * FROM restaurantes WHERE estado = 'pendiente'",
     (error, solicitudesPendientes) => {
@@ -372,14 +493,17 @@ router.get("/admin/restaurantes/rechazar/:id", (req, res) => {
 });
 
 router.get("/admin/adminUser", isAdmin, (req, res) => {
-  conexion.query("SELECT * FROM usuarios", (error, results) => {
-    if (error) {
-      console.error("Error en la consulta:", error); // Agrega esta línea para ver errores
-      return res.status(500).send("Error de base de datos");
+  conexion.query(
+    "SELECT * FROM usuarios WHERE rol = 'usuario'",
+    (error, results) => {
+      if (error) {
+        console.error("Error en la consulta:", error); // Agrega esta línea para ver errores
+        return res.status(500).send("Error de base de datos");
+      }
+      console.log("Resultados de usuarios:", results); // Verifica qué resultados se obtienen
+      res.render("admin/adminUser", { usuarios: results });
     }
-    console.log("Resultados de usuarios:", results); // Verifica qué resultados se obtienen
-    res.render("admin/adminUser", { usuarios: results });
-  });
+  );
 });
 
 router.post("/admin/adminUser/eliminarUsuario/:id", (req, res) => {
@@ -492,7 +616,7 @@ router.post("/user/perfil", isAuthenticated, (req, res) => {
   }
 });
 
-router.get("/user/mis-pedidos", authenticate, (req, res) => {
+router.get("/user/mis-pedidos", isAuthenticated, (req, res) => {
   const userId = req.user?.id_usuario || req.query.id_usuario;
 
   const query = `
@@ -527,7 +651,8 @@ router.get("/vistaRest", (req, res) => {
     "SELECT * FROM restaurantes WHERE id_restaurante = ?";
   const platosQuery = "SELECT * FROM platos WHERE id_restaurante = ?";
 
-  generarFranjas();
+  //Poner cuando se crean los horarios en la pagina de dashboard restaurantes
+  // generarFranjas();
   // Actualización: Consulta a la tabla franjas_horarias para obtener las franjas disponibles
   const franjasQuery = `
     SELECT fh.franja_inicio, fh.franja_fin, fh.disponibilidad

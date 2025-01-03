@@ -2,97 +2,96 @@
 <html lang="es">
   <head>
     <link
-      rel="stylesheet"
       href="/node_modules/bootstrap/dist/css/bootstrap.min.css"
+      rel="stylesheet"
     />
+
+    <script src="/node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <meta charset="utf-8" />
     <meta
       name="viewport"
       content="width=device-width, user-scalable=no, initial-scale=1.0, minimum-scale=1.0"
     />
     <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-    <title>RestaurantNow</title>
-    <link rel="stylesheet" href="/css/estilos.css" />
-    <link rel="icon" href="/favicon.png" />
-    <style>
-      body {
-        background-color: #f8f9fa;
-      }
-      .form-signin {
-        max-width: 400px;
-        padding: 15px;
-        margin: auto;
-        background: white;
-        border-radius: 8px;
-        box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
-      }
-      .form-signin img {
-        margin-bottom: 15px;
-      }
-      .form-floating label {
-        margin-bottom: 0;
-      }
-      .btn-bg-black {
-        background-color: #343a40;
-        color: #fff;
-      }
-      .btn-bg-black:hover {
-        background-color: #23272b;
-        color: #fff;
-      }
-      .footer-logo {
-        max-width: 50px;
-      }
-      .footer-text {
-        color: #6c757d;
-      }
-      .nav-link {
-        color: #343a40 !important;
-      }
-      .nav-link:hover {
-        color: #007bff !important;
-      }
-      .text-center {
-        text-align: center;
-      }
-    </style>
+
+    <!-- Favicons -->
+    <link href="assets/img/favicon.png" rel="icon" />
+    <link href="assets/img/apple-touch-icon.png" rel="apple-touch-icon" />
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&family=Inter:wght@100;200;300;400;500;600;700;800;900&family=Amatic+SC:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Vendor CSS Files -->
+    <link
+      href="assets/vendor/bootstrap/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="assets/vendor/bootstrap-icons/bootstrap-icons.css"
+      rel="stylesheet"
+    />
+    <link href="assets/vendor/aos/aos.css" rel="stylesheet" />
+    <link
+      href="assets/vendor/glightbox/css/glightbox.min.css"
+      rel="stylesheet"
+    />
+    <link href="assets/vendor/swiper/swiper-bundle.min.css" rel="stylesheet" />
+
+    <!-- Main CSS File -->
+    <link href="assets/css/main.css" rel="stylesheet" />
+    <link href="assets/css/estilos.css" rel="stylesheet" />
   </head>
-  <body class="text-center">
-    <nav
-      class="container d-flex flex-wrap justify-content-center py-3 mb-4 text-dark border-bottom"
-    >
-      <a
-        href="/"
-        class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-decoration-none text-dark"
+  <body class="index-page">
+    <header id="header" class="header d-flex align-items-center sticky-top">
+      <div
+        class="container position-relative d-flex align-items-center justify-content-between"
       >
-        <span class="fs-4">RestaurantNow</span>
-      </a>
-      <ul class="nav nav-pills">
-        <li class="nav-item">
-          <a href="/restaurantes" class="nav-link text-dark" aria-current="page"
-            >Restaurantes</a
-          >
-        </li>
-        <% if (!user) { %>
-        <li class="nav-item">
-          <a href="/login" class="nav-link text-dark">Iniciar Sesión</a>
-        </li>
-        <li class="nav-item">
-          <a href="/registro" class="nav-link text-dark">Registrarse</a>
-        </li>
-        <% } else { %>
-        <li class="nav-item">
-          <a href="/user/perfil" class="nav-link text-dark">Perfil</a>
-        </li>
-        <li class="nav-item">
-          <a href="/user/mis-pedidos" class="nav-link text-dark">Mis Pedidos</a>
-        </li>
-        <li class="nav-item">
-          <a href="/logout" class="nav-link text-dark">Cerrar Sesión</a>
-        </li>
-        <% } %>
-      </ul>
-    </nav>
+        <a href="/" class="logo d-flex align-items-center me-auto me-xl-0">
+          <!-- <img src="assets/img/logo.png" alt=""> -->
+          <h1 class="sitename">RestaurantNow</h1>
+          <span>.</span>
+        </a>
+        <nav id="navmenu" class="navmenu">
+          <ul class="nav nav-pills">
+            <li class="nav-item">
+              <a
+                href="/restaurantes"
+                class="nav-link text-dark"
+                aria-current="page"
+                >Restaurantes</a
+              >
+            </li>
+            <% if (!user) { %>
+            <li class="nav-item">
+              <a href="/login" class="nav-link text-dark">Iniciar Sesión</a>
+            </li>
+            <li class="nav-item">
+              <a href="/registro" class="nav-link text-dark">Registrarse</a>
+            </li>
+            <% } else { %>
+            <li class="nav-item">
+              <a href="/user/perfil" class="nav-link text-dark">Perfil</a>
+            </li>
+            <li class="nav-item">
+              <a href="/user/mis-pedidos" class="nav-link text-dark"
+                >Mis Pedidos</a
+              >
+            </li>
+            <li class="nav-item">
+              <a href="/logout" class="nav-link text-dark">Cerrar Sesión</a>
+            </li>
+            <% } %>
+          </ul>
+        </nav>
+
+        <a class="btn-getstarted" href="/restaurantes">Reservar</a>
+      </div>
+    </header>
 
     <main class="container">
       <!-- Información del restaurante -->

@@ -1,46 +1,21 @@
-const jwt = require('jsonwebtoken');
-
-// Middleware para verificar la autenticación del usuario
 const isAuthenticated = (req, res, next) => {
-  const token = req.cookies.token || req.header('Authorization')?.split(' ')[1]; // Unifica la obtención del token
-
-  if (!token) {
-    res.locals.user = null;
-    return next(); // No está autenticado, sigue sin errores
-  }
-
-  try {
-    const decoded = jwt.verify(token, process.env.SECRET_KEY || 'tu_clave_secreta'); // Usa la clave secreta desde variables de entorno
-    req.user = decoded;
-    res.locals.user = decoded; 
-    next();
-  } catch (error) {
-    res.locals.user = null; // Si el token es inválido, el usuario no está autenticado
-    next();
+  if (req.session.user) {
+    return next(); // El usuario está autenticado, continúa con la siguiente función
+  } else {
+    return res.redirect("/login"); // Redirige si no está autenticado
   }
 };
 
-// Middleware para verificar si el usuario es admin
 const isAdmin = (req, res, next) => {
-  const token = req.cookies.token || req.header('Authorization')?.split(' ')[1]; // Obtener token de la cookie o del header
-
-  if (!token) {
-    return res.status(401).send('Token no proporcionado');
+  if (!req.session.user) {
+    return res.status(401).send("No estás autenticado");
   }
 
-  try {
-    const decoded = jwt.verify(token, 'tu_clave_secreta');
-    req.user = decoded; // Guardar la información del usuario decodificada en la solicitud
-    if (decoded.email === "admin@admin") {
-      return next(); // Si es admin, pasa al siguiente middleware
-    } else {
-      return res.status(403).send('Acceso denegado');
-    }
-  } catch (error) {
-    return res.status(401).send('Token inválido o expirado');
+  if (req.session.user.email === "admin@admin.com") {
+    return next();
+  } else {
+    return res.status(403).send("Acceso denegado");
   }
 };
 
-
-// Exportar ambos middleware
 module.exports = { isAuthenticated, isAdmin };

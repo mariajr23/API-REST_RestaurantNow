@@ -13,216 +13,339 @@
       content="width=device-width, user-scalable=no, initial-scale=1.0, minimum-scale=1.0"
     />
     <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-    <title>RestaurantNow</title>
-    <link rel="stylesheet" href="/css/estilos.css" />
-    <link rel="icon" href="/favicon.png" />
+
+    <!-- Favicons -->
+    <link href="assets/img/favicon.png" rel="icon" />
+    <link href="assets/img/apple-touch-icon.png" rel="apple-touch-icon" />
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&family=Inter:wght@100;200;300;400;500;600;700;800;900&family=Amatic+SC:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Vendor CSS Files -->
+    <link
+      href="assets/vendor/bootstrap/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="assets/vendor/bootstrap-icons/bootstrap-icons.css"
+      rel="stylesheet"
+    />
+    <link href="assets/vendor/aos/aos.css" rel="stylesheet" />
+    <link
+      href="assets/vendor/glightbox/css/glightbox.min.css"
+      rel="stylesheet"
+    />
+    <link href="assets/vendor/swiper/swiper-bundle.min.css" rel="stylesheet" />
+
+    <!-- Main CSS File -->
+    <link href="assets/css/main.css" rel="stylesheet" />
   </head>
-  <body class="text-center">
-    <nav
-      class="container d-flex flex-wrap justify-content-center py-3 mb-4 text-dark border-bottom"
-    >
-      <a
-        href="/"
-        class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-decoration-none text-dark"
+  <body class="index-page">
+    <header id="header" class="header d-flex align-items-center sticky-top">
+      <div
+        class="container position-relative d-flex align-items-center justify-content-between"
       >
-        <span class="fs-4">RestaurantNow</span>
-      </a>
-      <ul class="nav nav-pills">
-        <li class="nav-item">
-          <a href="/restaurantes" class="nav-link text-dark" aria-current="page"
-            >Restaurantes</a
-          >
-        </li>
-        <% if (!user) { %>
-        <li class="nav-item">
-          <a href="/login" class="nav-link text-dark">Iniciar Sesión</a>
-        </li>
-        <li class="nav-item">
-          <a href="/registro" class="nav-link text-dark">Registrarse</a>
-        </li>
-        <% } else { %>
-        <li class="nav-item">
-          <a href="/user/perfil" class="nav-link text-dark">Perfil</a>
-        </li>
-        <li class="nav-item">
-          <a href="/user/mis-pedidos" class="nav-link text-dark">Mis Pedidos</a>
-        </li>
-        <li class="nav-item">
-          <a href="/logout" class="nav-link text-dark">Cerrar Sesión</a>
-        </li>
-        <% } %>
-      </ul>
-    </nav>
+        <a href="/" class="logo d-flex align-items-center me-auto me-xl-0">
+          <!-- <img src="assets/img/logo.png" alt=""> -->
+          <h1 class="sitename">RestaurantNow</h1>
+          <span>.</span>
+        </a>
+        <nav id="navmenu" class="navmenu">
+          <ul class="nav nav-pills">
+            <li class="nav-item">
+              <a
+                href="/restaurantes"
+                class="nav-link text-dark"
+                aria-current="page"
+                >Restaurantes</a
+              >
+            </li>
+            <% if (!user) { %>
+            <li class="nav-item">
+              <a href="/login" class="nav-link text-dark">Iniciar Sesión</a>
+            </li>
+            <li class="nav-item">
+              <a href="/registro" class="nav-link text-dark">Registrarse</a>
+            </li>
+            <% } else { %>
+            <li class="nav-item">
+              <a href="/user/perfil" class="nav-link text-dark">Perfil</a>
+            </li>
+            <li class="nav-item">
+              <a href="/user/mis-pedidos" class="nav-link text-dark"
+                >Mis Pedidos</a
+              >
+            </li>
+            <li class="nav-item">
+              <a href="/logout" class="nav-link text-dark">Cerrar Sesión</a>
+            </li>
+            <% } %>
+          </ul>
+        </nav>
+
+        <a class="btn-getstarted" href="/restaurantes">Reservar</a>
+      </div>
+    </header>
+
     <main>
       <section
-        class="container d-flex flex-column align-items-center"
+        id="hero"
+        class="hero section container d-flex flex-column align-items-center"
         id="pantalla_dividida"
       >
-        <div class="d-flex justify-content-between w-100">
-          <article class="izquierda">
-            <h1>RestaurantNow</h1>
-            <p>
-              No esperes tu comida, RESTaurant NOW! <br />Disfruta de la
-              experiencia de un restaurante sin pérdida de tiempo :)
-            </p>
-          </article>
-          <article class="derecha">
-            <img class="como-img" src="/images/logo.png" alt="Logo" />
-          </article>
-        </div>
-        <a href="/restaurantes" class="btn btn-dark btn-lg my-4 btn-bg-black"
-          >Mostrar restaurantes</a
-        >
-      </section>
-
-      <section class="container">
-        <h1 class="como-titulo text-center">¿Cómo funciona?</h1>
-        <div class="row como-funciona">
-          <div class="col-md-4 d-flex justify-content-center">
-            <div class="column">
-              <img class="como-img" src="/images/cursor.png" alt="Imagen 1" />
-              <div>
-                <h1>Pide</h1>
-                <p>
-                  Selecciona el restaurante que más te guste y efectúa tu
-                  pedido.
-                </p>
+        <div class="container">
+          <div
+            class="row gy-4 justify-content-center justify-content-lg-between"
+          >
+            <div
+              class="col-lg-5 order-2 order-lg-1 d-flex flex-column justify-content-center"
+            >
+              <h1>RestaurantNow!</h1>
+              <p data-aos-delay="100">
+                No esperes tu comida, RESTaurant NOW! <br />Disfruta de la
+                experiencia de un restaurante sin pérdida de tiempo :)
+              </p>
+              <div class="d-flex" data-aos-delay="200">
+                <a href="/restaurantes" class="btn-get-started">Reservar</a>
               </div>
             </div>
-          </div>
-          <div class="col-md-4 d-flex justify-content-center">
-            <div class="column reverse">
-              <div>
-                <h1>Paga</h1>
-                <p>Realiza la reserva y paga desde nuestra plataforma.</p>
-              </div>
+            <div class="col-lg-5 order-1 order-lg-2 hero-img">
               <img
-                class="como-img"
-                src="/images/tarjeta-bancaria.png"
-                alt="Imagen 2"
+                src="assets/img/hero-img.png"
+                class="img-fluid animated"
+                alt=""
               />
-            </div>
-          </div>
-          <div class="col-md-4 d-flex justify-content-center">
-            <div class="column">
-              <img
-                class="como-img"
-                src="/images/restaurante.png"
-                alt="Imagen 3"
-              />
-              <div>
-                <h1>Disfruta</h1>
-                <p>
-                  Disfruta de tu pedido sin preocupaciones de tiempo ni
-                  facturas.
-                </p>
-              </div>
             </div>
           </div>
         </div>
       </section>
+      <section id="about" class="about section">
+        <div class="container section-title">
+          <h2>About Us<br /></h2>
+          <p>
+            <span class="description-title">¿Cómo funciona?</span>
+          </p>
+        </div>
 
-      <section class="container beneficios">
-        <h1 class="text-center">Beneficios de Usar RestaurantNow</h1>
-        <ul class="list-unstyled text-center">
-          <li>Amplia selección de restaurantes para elegir.</li>
-          <li>Fácil y rápido proceso de pedido y pago.</li>
-          <li>Comodidad de disfrutar tu comida en casa sin demoras.</li>
-          <li>Ofertas exclusivas y descuentos para usuarios registrados.</li>
-          <li>Soporte al cliente para resolver cualquier inconveniente.</li>
-        </ul>
-      </section>
-
-      <section class="container unirse text-center">
-        <h2>Únete a Nosotros como Restaurante</h2>
-        <p>
-          Si eres dueño de un restaurante y quieres ofrecer tus servicios a
-          nuestros clientes, ¡nos encantaría tenerte con nosotros! Regístrate
-          como restaurante para comenzar a recibir pedidos a través de nuestra
-          plataforma.
-        </p>
-        <button
-          type="button"
-          class="btn btn-primary"
-          data-bs-toggle="modal"
-          data-bs-target="#modalRegistroRestaurante"
-        >
-          Registrar Restaurante
-        </button>
-
-        <div
-          class="modal fade"
-          id="modalRegistroRestaurante"
-          tabindex="-1"
-          aria-labelledby="modalRegistroRestauranteLabel"
-          aria-hidden="true"
-        >
-          <div class="modal-dialog">
-            <div class="modal-content">
-              <div class="modal-header">
-                <h5 class="modal-title" id="modalRegistroRestauranteLabel">
-                  Registro de Restaurante
-                </h5>
-                <button
-                  type="button"
-                  class="btn-close"
-                  data-bs-dismiss="modal"
-                  aria-label="Close"
-                ></button>
-              </div>
-              <div class="modal-body">
-                <form action="/registrar-restaurante" method="POST">
-                  <div class="form-group">
-                    <label for="nombreRestaurante"
-                      >Nombre del Restaurante</label
+        <div class="container">
+          <div class="row gy-4">
+            <div class="col-lg-7" data-aos-delay="100">
+              <img src="assets/img/about.jpg" class="img-fluid mb-4" alt="" />
+            </div>
+            <div class="col-lg-5" data-aos-delay="250">
+              <div class="content ps-0 ps-lg-5">
+                <p class="fst-italic">
+                  Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
+                  do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+                </p>
+                <ul>
+                  <li>
+                    <i class="bi bi-check-circle-fill"></i>
+                    <span>
+                      Selecciona el restaurante que más te guste y efectúa tu
+                      pedido.</span
                     >
+                  </li>
+                  <li>
+                    <i class="bi bi-check-circle-fill"></i>
+                    <span>
+                      Realiza la reserva y paga desde nuestra plataforma.</span
+                    >
+                  </li>
+                  <li>
+                    <i class="bi bi-check-circle-fill"></i>
+                    <span>
+                      Disfruta de tu pedido sin preocupaciones de tiempo ni
+                      facturas.</span
+                    >
+                  </li>
+                </ul>
+
+                <div class="position-relative mt-4">
+                  <img src="assets/img/about-2.jpg" class="img-fluid" alt="" />
+                  <a
+                    href="https://www.youtube.com/watch?v=Y7f98aduVJ8"
+                    class="glightbox pulsating-play-btn"
+                  ></a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <!-- /About Section -->
+      <!-- Why Us Section -->
+      <section id="why-us" class="why-us section light-background">
+        <div class="container">
+          <div class="row gy-4">
+            <div class="col-lg-4" data-aos-delay="100">
+              <div class="why-box">
+                <h3>¿Por qué elegir RestaurantNow?</h3>
+                <p>Fácil y rápido proceso de pedido y pago.</p>
+              </div>
+            </div>
+            <!-- End Why Box -->
+
+            <div class="col-lg-8 d-flex align-items-stretch">
+              <div class="row gy-4" data-aos-delay="200">
+                <div class="col-xl-4">
+                  <div
+                    class="icon-box d-flex flex-column justify-content-center align-items-center"
+                  >
+                    <i class="bi bi-clipboard-data"></i>
+                    <h4>Restaurantes variados</h4>
+                    <p>Amplia selección de restaurantes para elegir.</p>
+                  </div>
+                </div>
+                <!-- End Icon Box -->
+
+                <div class="col-xl-4" data-aos-delay="300">
+                  <div
+                    class="icon-box d-flex flex-column justify-content-center align-items-center"
+                  >
+                    <i class="bi bi-gem"></i>
+                    <h4>Sin esperas</h4>
+                    <p>Comodidad de disfrutar tu comida en casa sin demoras.</p>
+                  </div>
+                </div>
+                <!-- End Icon Box -->
+
+                <div class="col-xl-4" data-aos-delay="400">
+                  <div
+                    class="icon-box d-flex flex-column justify-content-center align-items-center"
+                  >
+                    <i class="bi bi-inboxes"></i>
+                    <h4>Algun problema</h4>
+                    <p>
+                      Soporte al cliente para resolver cualquier inconveniente.
+                    </p>
+                  </div>
+                </div>
+                <!-- End Icon Box -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <!-- /Why Us Section -->
+
+      <section id="book-a-table" class="book-a-table section">
+        <div class="container section-title">
+          <h2>Book A Table</h2>
+          <p>
+            <span>Registra tu resaurante ahora!!</span>
+            <span class="description-title">Stay With Us<br /></span>
+          </p>
+        </div>
+
+        <div class="container">
+          <div class="row g-0" data-aos-delay="100">
+            <div
+              class="col-lg-4 reservation-img"
+              style="background-image: url(assets/img/reservation.jpg)"
+            ></div>
+
+            <div
+              class="col-lg-8 d-flex align-items-center reservation-form-bg"
+              data-aos-delay="200"
+            >
+              <form
+                action="/registrar/restaurante"
+                method="post"
+                role="form"
+                class="php-email-form"
+              >
+                <div class="row gy-4">
+                  <div class="col-lg-4 col-md-6">
+                    <label for="nombreRestaurante">Nombre Restaurante</label>
+
                     <input
                       type="text"
                       class="form-control"
                       id="nombreRestaurante"
-                      name="nombreRestaurante"
+                      name="nombre"
+                      placeholder="Nombre del Restaurante"
                       required
                     />
                   </div>
-                  <div class="form-group">
+                  <div class="col-lg-4 col-md-6">
                     <label for="emailRestaurante">Correo Electrónico</label>
                     <input
                       type="email"
                       class="form-control"
                       id="emailRestaurante"
-                      name="emailRestaurante"
+                      name="email"
+                      placeholder="Correo Electrónico"
                       required
                     />
                   </div>
-                  <div class="form-group">
+                  <div class="col-lg-4 col-md-6">
                     <label for="telefonoRestaurante">Teléfono</label>
+
                     <input
                       type="text"
                       class="form-control"
                       id="telefonoRestaurante"
-                      name="telefonoRestaurante"
+                      name="telefono"
+                      placeholder="Teléfono"
                       required
                     />
                   </div>
-                  <div class="form-group">
+                  <div class="col-lg-4 col-md-6">
                     <label for="direccionRestaurante">Dirección</label>
                     <input
                       type="text"
                       class="form-control"
                       id="direccionRestaurante"
-                      name="direccionRestaurante"
+                      name="direccion"
+                      placeholder="Dirección"
                       required
                     />
                   </div>
-                  <button type="submit" class="btn btn-primary">
-                    Registrar Restaurante
-                  </button>
-                </form>
-              </div>
+                  <div class="col-lg-4 col-md-6">
+                    <label for="contrasenaRestaurante">Contraseña</label>
+                    <input
+                      type="password"
+                      class="form-control"
+                      id="contrasenaRestaurante"
+                      name="contrasena"
+                      placeholder="Contraseña"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div class="form-group mt-3">
+                  <textarea
+                    class="form-control"
+                    name="message"
+                    rows="5"
+                    placeholder="Message"
+                  ></textarea>
+                </div>
+
+                <div class="text-center mt-3">
+                  <div class="loading">Loading</div>
+                  <div class="error-message"></div>
+                  <div class="sent-message">
+                    Your booking request was sent. We will call back or send an
+                    Email to confirm your reservation. Thank you!
+                  </div>
+                  <button type="submit">Book a Table</button>
+                </div>
+              </form>
             </div>
+            <!-- End Reservation Form -->
           </div>
         </div>
       </section>
+      <!-- /Book A Table Section -->
+      <!-- End Reservation Form -->
     </main>
 
     <article class="footer">
