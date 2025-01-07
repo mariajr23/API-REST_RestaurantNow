@@ -28,23 +28,24 @@
 
     <!-- Vendor CSS Files -->
     <link
-      href="assets/vendor/bootstrap/css/bootstrap.min.css"
+      href="../assets/vendor/bootstrap/css/bootstrap.min.css"
       rel="stylesheet"
     />
     <link
-      href="assets/vendor/bootstrap-icons/bootstrap-icons.css"
+      href="../assets/vendor/bootstrap-icons/bootstrap-icons.css"
       rel="stylesheet"
     />
-    <link href="assets/vendor/aos/aos.css" rel="stylesheet" />
+    <link href="../assets/vendor/aos/aos.css" rel="stylesheet" />
     <link
-      href="assets/vendor/glightbox/css/glightbox.min.css"
+      href="../assets/vendor/glightbox/css/glightbox.min.css"
       rel="stylesheet"
     />
-    <link href="assets/vendor/swiper/swiper-bundle.min.css" rel="stylesheet" />
+    <link
+      href="../assets/vendor/swiper/swiper-bundle.min.css"
+      rel="stylesheet"
+    />
 
-    <!-- Main CSS File -->
-    <link href="assets/css/main.css" rel="stylesheet" />
-    <link href="assets/css/estilos.css" rel="stylesheet" />
+    <link href="../assets/css/estilos.css" rel="stylesheet" />
   </head>
   <body>
     <nav class="sidebar">
@@ -81,6 +82,7 @@
               <th>Nombre</th>
               <th>Descripción</th>
               <th>Precio</th>
+              <th>Visible</th>
               <th>Acciones</th>
             </tr>
           </thead>
@@ -94,6 +96,27 @@
               <td><%= plato.nombre_plato %></td>
               <td><%= plato.descripcion_plato %></td>
               <td>$<%= plato.precio %></td>
+              <td>
+                <div class="btn-group btn-group-toggle" data-toggle="buttons">
+                  <label
+                    class="btn btn-secondary <%= plato.visible ? 'active' : '' %>"
+                  >
+                    <input type="radio" name="visibility_<%= plato.id_plato %>"
+                    autocomplete="off" <%= plato.visible ? 'checked' : '' %>
+                    onclick="changeVisibility(<%= plato.id_plato %>, true)" >
+                    Visible
+                  </label>
+                  <label
+                    class="btn btn-secondary <%= !plato.visible ? 'active' : '' %>"
+                  >
+                    <input type="radio" name="visibility_<%= plato.id_plato %>"
+                    autocomplete="off" <%= !plato.visible ? 'checked' : '' %>
+                    onclick="changeVisibility(<%= plato.id_plato %>, false)" >
+                    Invisible
+                  </label>
+                </div>
+              </td>
+
               <td>
                 <!-- Botón para editar -->
                 <button
@@ -170,37 +193,12 @@
                     </div>
                   </div>
                 </div>
-                <!-- Botón para Mostrar -->
-
-                <form
-                  action="/restaurante/platos/toggle/<%= plato.id_plato %>"
-                  method="POST"
-                  style="display: inline"
-                >
-                  <button class="btn btn-info btn-sm">
-                    <%= plato.visible ? 'Ocultar' : 'Mostrar' %>
-                  </button>
-                </form>
-                <!-- Botón para eliminar -->
-                <form
-                  action="/restaurante/platos/delete/<%= plato.id_plato %>"
-                  method="POST"
-                  style="display: inline"
-                >
-                  <button
-                    class="btn btn-danger btn-sm"
-                    onclick="return confirm('¿Estás seguro de eliminar este plato?')"
-                  >
-                    Eliminar
-                  </button>
-                </form>
               </td>
             </tr>
             <% }); %> <% } %>
           </tbody>
         </table>
 
-        <!-- Formulario para añadir plato -->
         <h3 class="mt-4">Añadir Nuevo Plato</h3>
         <form action="/restaurante/platos/add" method="POST">
           <div class="form-group">
@@ -260,8 +258,27 @@
         </li>
       </ul>
     </footer>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="../assets/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+      function changeVisibility(id_plato, estado) {
+        fetch("/restaurante/platos/visibility/" + id_plato, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            id_plato: id_plato,
+            visible: estado,
+          }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            console.log("Estado actualizado", data);
+          })
+          .catch((error) => {
+            console.error("Error al actualizar el estado", error);
+          });
+      }
+    </script>
   </body>
 </html>

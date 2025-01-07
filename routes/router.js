@@ -276,7 +276,7 @@ router.get("/restaurante/platos", isAuthenticated, async (req, res) => {
   console.log("ID de usuario:", idUsuario);
 
   conexion.query(
-    "SELECT u.id_usuario, r.id_restaurante, p.id_plato, p.nombre AS nombre_plato, p.descripcion AS descripcion_plato, p.precio FROM usuarios u JOIN restaurantes r ON u.id_usuario = r.id_usuario JOIN platos p ON r.id_restaurante = p.id_restaurante WHERE u.id_usuario = ?",
+    "SELECT u.id_usuario, r.id_restaurante, p.id_plato, p.nombre AS nombre_plato, p.descripcion AS descripcion_plato, p.precio, p.visible FROM usuarios u JOIN restaurantes r ON u.id_usuario = r.id_usuario JOIN platos p ON r.id_restaurante = p.id_restaurante WHERE u.id_usuario = ?",
     [idUsuario],
     (error, results) => {
       if (error) {
@@ -293,6 +293,7 @@ router.get("/restaurante/platos", isAuthenticated, async (req, res) => {
     }
   );
 });
+//Editar platos
 router.post("/restaurante/platos/edit/:id_plato", (req, res) => {
   const { id_plato } = req.params;
   const { nombre, descripcion, precio } = req.body;
@@ -322,43 +323,65 @@ router.post("/restaurante/platos/edit/:id_plato", (req, res) => {
     }
   );
 });
-router.post("/restaurante/platos/delete/:id_plato", (req, res) => {
-  const { id_plato } = req.params;
 
-  conexion.query(
-    "UPDATE platos SET visible = FALSE WHERE id_plato = ?",
-    [id_plato],
-    (err, result) => {
-      if (err) {
-        console.error("Error al eliminar el plato:", err);
-        return res.status(500).send("Error al eliminar el plato");
-      }
-
-      if (result.affectedRows > 0) {
-        console.log(`Plato ${id_plato} eliminado`);
-        return res.redirect("/restaurante/platos");
-      } else {
-        console.log(`No se encontró el plato con ID ${id_plato}`);
-        return res.status(404).send("Plato no encontrado");
-      }
-    }
-  );
-});
-router.post("/restaurante/platos/toggle/:id", (req, res) => {
+//Mostar plato en la web
+router.post("/restaurante/platos/visibility/:id", (req, res) => {
   const platoId = req.params.id;
-  const visible = req.body.visible;
+  const { visible } = req.body;
 
-  // Actualizar en la base de datos
   const query = "UPDATE platos SET visible = ? WHERE id_plato = ?";
-  conexion.query(query, [visible, platoId], (err, result) => {
+
+  conexion.query(query, [visible ? 1 : 0, platoId], (err, result) => {
     if (err) {
-      console.error(err);
-      return res.json({ success: false });
+      console.error("Error al actualizar visibilidad:", err);
+      return res
+        .status(500)
+        .json({ success: false, message: "Error al actualizar visibilidad" });
     }
-    res.json({ success: true });
+
+    if (result.affectedRows > 0) {
+      res.json({
+        success: true,
+        message: "Estado actualizado correctamente",
+      });
+    } else {
+      res.status(404).json({ success: false, message: "Plato no encontrado" });
+    }
   });
 });
 
+//Añadir plato al menu
+router.post("/restaurante/platos/add", (req, res) => {
+  const { nombre, descripcion, precio } = req.body;
+  const userId = req.session.user?.id;
+  if (!userId) {
+    return res.status(401).send("No estás autenticado.");
+  }
+
+  const queryRestaurante = `SELECT id_restaurante FROM restaurantes WHERE id_usuario = ?`;
+
+  conexion.query(queryRestaurante, [userId], (err, results) => {
+    if (err) {
+      return res.status(500).send("Error en la base de datos");
+    }
+
+    const idRestaurante = results[0].id_restaurante;
+    const query =
+      "INSERT INTO platos( nombre, descripcion, precio, id_restaurante, visible) VALUES (?,?,?,?,0)";
+    conexion.query(
+      query,
+      [nombre, descripcion, precio, idRestaurante],
+      (err, result) => {
+        if (err) {
+          console.error("Error al insertar el plato:", err);
+          return res.json({ success: false });
+        }
+
+        res.redirect("/restaurante/platos");
+      }
+    );
+  });
+});
 router.get("/restaurante/perfil", (req, res) => {
   res.render("restaurante/perfil");
 });

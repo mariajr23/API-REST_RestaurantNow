@@ -125,11 +125,6 @@
               >
                 <h4 class="text-right">Configuración del Perfil</h4>
               </div>
-              <% if (message) { %>
-              <div class="alert alert-<%= message.type %>">
-                <%= message.text %>
-              </div>
-              <% } %>
               <form action="/user/perfil" method="POST">
                 <div class="row mt-2">
                   <div class="col-md-6">
