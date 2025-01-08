@@ -28,25 +28,24 @@
 
     <!-- Vendor CSS Files -->
     <link
-      href="assets/vendor/bootstrap/css/bootstrap.min.css"
+      href="../assets/vendor/bootstrap-icons/bootstrap-icons.css"
+      rel="stylesheet"
+    />
+    <link href="../assets/vendor/aos/aos.css" rel="stylesheet" />
+    <link
+      href="../assets/vendor/glightbox/css/glightbox.min.css"
       rel="stylesheet"
     />
     <link
-      href="assets/vendor/bootstrap-icons/bootstrap-icons.css"
+      href="../assets/vendor/swiper/swiper-bundle.min.css"
       rel="stylesheet"
     />
-    <link href="assets/vendor/aos/aos.css" rel="stylesheet" />
-    <link
-      href="assets/vendor/glightbox/css/glightbox.min.css"
-      rel="stylesheet"
-    />
-    <link href="assets/vendor/swiper/swiper-bundle.min.css" rel="stylesheet" />
 
     <!-- Main CSS File -->
-    <link href="assets/css/main.css" rel="stylesheet" />
-    <link href="assets/css/estilos.css" rel="stylesheet" />
+    <link href="../assets/css/main.css" rel="stylesheet" />
+    <link href="../assets/css/estilos.css" rel="stylesheet" />
   </head>
-  <body class="index-page">
+  <body>
     <header id="header" class="header d-flex align-items-center sticky-top">
       <div
         class="container position-relative d-flex align-items-center justify-content-between"
@@ -92,35 +91,34 @@
         <a class="btn-getstarted" href="/restaurantes">Reservar</a>
       </div>
     </header>
-    <main class="login">
-      <ul class="nav nav-tabs" id="myTab" role="tablist">
-        <li class="nav-item" role="presentation">
-          <a
-            class="nav-link active"
-            id="usuario-tab"
-            data-toggle="tab"
-            href="#usuario"
-            role="tab"
-            aria-controls="usuario"
-            aria-selected="true"
-            >Usuario</a
-          >
-        </li>
-        <li class="nav-item" role="presentation">
-          <a
-            class="nav-link"
-            id="restaurante-tab"
-            data-toggle="tab"
-            href="#restaurante"
-            role="tab"
-            aria-controls="restaurante"
-            aria-selected="false"
-            >Restaurante</a
-          >
-        </li>
-      </ul>
-
+    <main class="container d-flex flex-column align-items-center">
       <div class="tab-content" id="myTabContent">
+        <ul class="nav nav-tabs" id="myTab" role="tablist">
+          <li class="nav-item" role="presentation">
+            <a
+              class="nav-link active"
+              id="usuario-tab"
+              data-toggle="tab"
+              href="#usuario"
+              role="tab"
+              aria-controls="usuario"
+              aria-selected="true"
+              >Usuario</a
+            >
+          </li>
+          <li class="nav-item" role="presentation">
+            <a
+              class="nav-link"
+              id="restaurante-tab"
+              data-toggle="tab"
+              href="#restaurante"
+              role="tab"
+              aria-controls="restaurante"
+              aria-selected="false"
+              >Restaurante</a
+            >
+          </li>
+        </ul>
         <!-- Formulario de login para usuarios -->
         <div
           class="tab-pane fade show active"

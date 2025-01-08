@@ -15,8 +15,8 @@
     <meta http-equiv="content-type" content="text/html; charset=utf-8" />
 
     <!-- Favicons -->
-    <link href="assets/img/favicon.png" rel="icon" />
-    <link href="assets/img/apple-touch-icon.png" rel="apple-touch-icon" />
+    <link href="../assets/img/favicon.png" rel="icon" />
+    <link href="../assets/img/apple-touch-icon.png" rel="apple-touch-icon" />
 
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com" rel="preconnect" />
@@ -28,25 +28,26 @@
 
     <!-- Vendor CSS Files -->
     <link
-      href="assets/vendor/bootstrap/css/bootstrap.min.css"
+      href="../assets/vendor/bootstrap/css/bootstrap.min.css"
       rel="stylesheet"
     />
     <link
-      href="assets/vendor/bootstrap-icons/bootstrap-icons.css"
+      href="../assets/vendor/bootstrap-icons/bootstrap-icons.css"
       rel="stylesheet"
     />
-    <link href="assets/vendor/aos/aos.css" rel="stylesheet" />
+    <link href="../assets/vendor/aos/aos.css" rel="stylesheet" />
     <link
-      href="assets/vendor/glightbox/css/glightbox.min.css"
+      href="../assets/vendor/glightbox/css/glightbox.min.css"
       rel="stylesheet"
     />
-    <link href="assets/vendor/swiper/swiper-bundle.min.css" rel="stylesheet" />
+    <link
+      href="../assets/vendor/swiper/swiper-bundle.min.css"
+      rel="stylesheet"
+    />
 
     <!-- Main CSS File -->
-    <link href="assets/css/main.css" rel="stylesheet" />
-    <link href="assets/css/estilos.css" rel="stylesheet" />
-  </head>
-  <head>
+    <link href="../assets/css/main.css" rel="stylesheet" />
+    <link href="../assets/css/estilos.css" rel="stylesheet" />
     <link
       href="/node_modules/bootstrap/dist/css/bootstrap.min.css"
       rel="stylesheet"
@@ -59,152 +60,212 @@
     />
     <meta http-equiv="content-type" content="text/html; charset=utf-8" />
     <title>RestaurantNow</title>
-    <link href="assets/css/estilos.css" rel="stylesheet" />
+    <link href="../assets/css/estilos.css" rel="stylesheet" />
     <link rel="icon" href="/favicon.png" />
   </head>
+
   <body class="text-center">
-    <nav
-      class="container d-flex flex-wrap justify-content-center py-3 mb-4 text-dark border-bottom"
-    >
-      <a
-        href="/"
-        class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-decoration-none text-dark"
-      >
-        <span class="fs-4">RestaurantNow</span>
-      </a>
-      <ul class="nav nav-pills">
+    <nav class="sidebar">
+      <h4>Admin Menu</h4>
+      <ul class="nav flex-column">
         <li class="nav-item">
-          <a href="/restaurantes" class="nav-link text-dark" aria-current="page"
-            >Restaurantes</a
+          <a class="nav-link" href="/restaurante/reservas"
+            >Gestionar Reservas</a
           >
         </li>
-        <% if (!user) { %>
         <li class="nav-item">
-          <a href="/login" class="nav-link text-dark">Iniciar Sesión</a>
+          <a class="nav-link" href="/restaurante/platos">Gestionar Platos</a>
         </li>
         <li class="nav-item">
-          <a href="/registro" class="nav-link text-dark">Registrarse</a>
-        </li>
-        <% } else { %>
-        <li class="nav-item">
-          <a href="/user/perfil" class="nav-link text-dark">Perfil</a>
+          <a class="nav-link" href="/restaurante/dashboard">Perfil</a>
         </li>
         <li class="nav-item">
-          <a href="/user/mis-pedidos" class="nav-link text-dark">Mis Pedidos</a>
+          <a class="nav-link" href="/logout">Cerrar Sesión</a>
         </li>
-        <li class="nav-item">
-          <a href="/logout" class="nav-link text-dark">Cerrar Sesión</a>
-        </li>
-        <% } %>
       </ul>
     </nav>
-
     <main>
-      <div class="container rounded bg-white mt-5 mb-5">
-        <div class="row">
-          <div class="col-md-3 border-right">
-            <div
-              class="d-flex flex-column align-items-center text-center p-3 py-5"
-            >
-              <img
-                class="rounded-circle mt-5"
-                width="150px"
-                src="https://st3.depositphotos.com/15648834/17930/v/600/depositphotos_179308454-stock-illustration-unknown-person-silhouette-glasses-profile.jpg"
-              />
-              <span class="font-weight-bold"
-                ><%= user.nombre %> <%= user.apellido %></span
-              >
-              <span class="text-black-50"><%= user.email %></span>
-              <span></span>
-            </div>
-          </div>
-          <div class="col-md-5 border-right">
-            <div class="p-3 py-5">
-              <div
-                class="d-flex justify-content-between align-items-center mb-3"
-              >
-                <h4 class="text-right">Configuración del Perfil</h4>
-              </div>
-              <form action="/user/perfil" method="POST">
-                <div class="row mt-2">
-                  <div class="col-md-6">
-                    <label class="labels">Nombre</label>
-                    <input
-                      type="text"
-                      class="form-control"
-                      name="nombre"
-                      value="<%= user.nombre %>"
-                      required
-                    />
-                  </div>
-                  <div class="col-md-6">
-                    <label class="labels">Apellido</label>
-                    <input
-                      type="text"
-                      class="form-control"
-                      name="apellido"
-                      value="<%= user.apellido %>"
-                      required
-                    />
-                  </div>
-                </div>
+      <div class="main-content">
+        <h1 class="text-center">Configuración del Perfil</h1>
+        <div class="row justify-content-center">
+          <div class="col-md-8">
+            <form action="/restaurante/perfil" method="POST">
+              <div class="row mt-3">
+                <label class="labels">Nombre</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  name="nombre"
+                  value="<%= user.nombre %>"
+                  required
+                />
                 <div class="row mt-3">
-                  <div class="col-md-12">
-                    <label class="labels">Teléfono</label>
-                    <input
-                      type="text"
-                      class="form-control"
-                      name="telefono"
-                      value="<%= user.telefono %>"
-                      required
-                    />
-                  </div>
-                  <div class="col-md-12">
-                    <label class="labels">Nueva Contraseña</label>
-                    <input
-                      type="password"
-                      class="form-control"
-                      name="contrasena"
-                      placeholder="Introduce nueva contraseña"
-                    />
-                  </div>
-                  <div class="col-md-12">
-                    <label class="labels">Confirmar Nueva Contraseña</label>
-                    <input
-                      type="password"
-                      class="form-control"
-                      name="confirmar_contrasena"
-                      placeholder="Confirma nueva contraseña"
-                    />
-                  </div>
+                  <label class="labels">Descripción</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    name="descripcion"
+                    value="<%= user.descripcion %>"
+                    required
+                  />
                 </div>
-                <div class="mt-5 text-center">
-                  <button class="btn btn-primary profile-button" type="submit">
-                    Guardar Perfil
-                  </button>
+              </div>
+              <div class="row mt-3">
+                <div class="col-md-12">
+                  <label class="labels">Dirección</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    name="direccion"
+                    value="<%= user.direccion %>"
+                    required
+                  />
                 </div>
-              </form>
-            </div>
+                <div class="col-md-12 mt-3">
+                  <label class="labels">Teléfono</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    name="telefono"
+                    value="<%= user.telefono %>"
+                    required
+                  />
+                </div>
+                <div class="col-md-12 mt-3">
+                  <label class="labels">Estado (no editable)</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    value="<%= user.estado %>"
+                    disabled
+                  />
+                </div>
+              </div>
+              <div class="mt-5 text-center">
+                <button class="btn btn-primary profile-button" type="submit">
+                  Guardar Cambios
+                </button>
+              </div>
+            </form>
           </div>
-          <div class="col-md-4">
-            <div class="p-3 py-5">
-              <div class="d-flex justify-content-between align-items-center">
-                <h5>Acciones</h5>
-              </div>
-              <br />
-              <div class="col-md-12">
-                <form action="/user/mis-pedidos" method="GET">
-                  <button class="btn btn-primary w-100" type="submit">
-                    Mis pedidos
-                  </button>
-                </form>
-              </div>
-              <br />
-              <div class="col-md-12">
-                <form action="/user/logout" method="POST">
-                  <button class="btn btn-danger w-100" type="submit">
-                    Cerrar Sesion
-                  </button>
+          <div class="col-md-12 mt-5">
+            <h4 class="text-center">Horario del Restaurante</h4>
+            <table class="table table-bordered">
+              <thead>
+                <tr>
+                  <th>Días de la Semana</th>
+                  <th>Hora de Inicio</th>
+                  <th>Hora de Fin</th>
+                  <th>Acción</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% if (horarios && horarios.length > 0) { %> <%
+                horarios.forEach(horario => { %>
+                <tr>
+                  <td><%= horario.dias_semana %></td>
+                  <td><%= horario.hora_inicio %></td>
+                  <td><%= horario.hora_fin %></td>
+                  <td>
+                    <button
+                      class="btn btn-warning btn-sm editar-horario"
+                      data-id="<%= horario.id_horario %>"
+                      data-dias="<%= horario.dias_semana %>"
+                      data-inicio="<%= horario.hora_inicio %>"
+                      data-fin="<%= horario.hora_fin %>"
+                      data-bs-toggle="modal"
+                      data-bs-target="#modalEditarHorario"
+                    >
+                      Editar
+                    </button>
+                  </td>
+                </tr>
+                <% }); %> <% } else { %>
+                <tr>
+                  <td colspan="4" class="text-center">
+                    No hay horarios registrados.
+                  </td>
+                </tr>
+                <% } %>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Modal para editar horarios -->
+          <div
+            class="modal fade"
+            id="modalEditarHorario"
+            tabindex="-1"
+            aria-labelledby="modalEditarHorarioLabel"
+            aria-hidden="true"
+          >
+            <div class="modal-dialog">
+              <div class="modal-content">
+                <form action="/restaurante/editar-horario" method="POST">
+                  <div class="modal-header">
+                    <h5 class="modal-title" id="modalEditarHorarioLabel">
+                      Editar Horario
+                    </h5>
+                    <button
+                      type="button"
+                      class="btn-close"
+                      data-bs-dismiss="modal"
+                      aria-label="Close"
+                    ></button>
+                  </div>
+                  <div class="modal-body">
+                    <input
+                      type="hidden"
+                      name="id_horario"
+                      id="modalIdHorario"
+                    />
+                    <div class="mb-3">
+                      <label for="modalDiasSemana" class="form-label"
+                        >Días de la Semana</label
+                      >
+                      <input
+                        type="text"
+                        class="form-control"
+                        id="modalDiasSemana"
+                        name="dias_semana"
+                        placeholder="Ejemplo: 1,2,3"
+                      />
+                    </div>
+                    <div class="mb-3">
+                      <label for="modalHoraInicio" class="form-label"
+                        >Hora de Inicio</label
+                      >
+                      <input
+                        type="time"
+                        class="form-control"
+                        id="modalHoraInicio"
+                        name="hora_inicio"
+                      />
+                    </div>
+                    <div class="mb-3">
+                      <label for="modalHoraFin" class="form-label"
+                        >Hora de Fin</label
+                      >
+                      <input
+                        type="time"
+                        class="form-control"
+                        id="modalHoraFin"
+                        name="hora_fin"
+                      />
+                    </div>
+                  </div>
+                  <div class="modal-footer">
+                    <button
+                      type="button"
+                      class="btn btn-secondary"
+                      data-bs-dismiss="modal"
+                    >
+                      Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                      Guardar Cambios
+                    </button>
+                  </div>
                 </form>
               </div>
             </div>
@@ -248,6 +309,23 @@
         </footer>
       </article>
     </footer>
+    <script>
+      document.querySelectorAll(".editar-horario").forEach((button) => {
+        button.addEventListener("click", (event) => {
+          const horarioId = event.target.dataset.id;
+          const diasSemana = event.target.dataset.dias;
+          const horaInicio = event.target.dataset.inicio;
+          const horaFin = event.target.dataset.fin;
+
+          document.getElementById("modalIdHorario").value = horarioId;
+          document.getElementById("modalDiasSemana").value = diasSemana;
+          document.getElementById("modalHoraInicio").value = horaInicio;
+          document.getElementById("modalHoraFin").value = horaFin;
+
+          console.log("id_horario asignado:", horarioId);
+        });
+      });
+    </script>
 
     <script src="/node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
   </body>

@@ -259,10 +259,84 @@ router.post("/restaurante/crear", isAuthenticated, (req, res) => {
 router.get("/restaurante/dashboard", (req, res) => {
   res.render("restaurante/dashboard");
 });
-router.get("/restaurante/reservas", (req, res) => {
-  res.render("restaurante/reservas");
-});
+router.get("/restaurante/reservas", isAuthenticated, (req, res) => {
+  const userId = req.session.user?.id;
 
+  // Obtener el id_restaurante asociado al usuario
+  conexion.query(
+    "SELECT id_restaurante FROM restaurantes WHERE id_usuario = ?",
+    [userId],
+    (err, results) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).send("Error al obtener datos del restaurante.");
+      }
+
+      if (results.length === 0) {
+        return res.render("restaurante/reservas", {
+          reservas: [],
+          reservasAnteriores: [],
+        });
+      }
+
+      const restauranteId = results[0].id_restaurante;
+
+      // Obtener todas las reservas asociadas al restaurante, incluyendo las aceptadas y rechazadas
+      conexion.query(
+        "SELECT * FROM reservas WHERE id_restaurante = ? ORDER BY fecha ASC, hora ASC",
+        [restauranteId],
+        (err, reservas) => {
+          if (err) {
+            console.error(err);
+            return res.status(500).send("Error al obtener reservas.");
+          }
+
+          const reservasPendientes = reservas.filter(
+            (reserva) => reserva.estado === 1
+          );
+          const reservasAnteriores = reservas.filter(
+            (reserva) => reserva.estado !== 1
+          );
+
+          res.render("restaurante/reservas", {
+            reservas: reservasPendientes,
+            reservasAnteriores: reservasAnteriores,
+          });
+        }
+      );
+    }
+  );
+});
+router.get("/restaurante/reservas/aceptar/:id_reserva", (req, res) => {
+  const { id_reserva } = req.params;
+  conexion.query(
+    "UPDATE reservas SET estado = 2 WHERE id_reserva = ?",
+    [id_reserva],
+    (err, result) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).send("Error al aceptar la reserva.");
+      }
+
+      res.redirect("/restaurante/reservas");
+    }
+  );
+});
+router.get("/restaurante/reservas/rechazar/:id_reserva", (req, res) => {
+  const { id_reserva } = req.params;
+  conexion.query(
+    "UPDATE reservas SET estado = 0 WHERE id_reserva = ?",
+    [id_reserva],
+    (err, result) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).send("Error al aceptar la reserva.");
+      }
+
+      res.redirect("/restaurante/reservas");
+    }
+  );
+});
 //Gestion de platos
 router.get("/restaurante/platos", isAuthenticated, async (req, res) => {
   if (!req.session || !req.session.user) {
@@ -323,7 +397,6 @@ router.post("/restaurante/platos/edit/:id_plato", (req, res) => {
     }
   );
 });
-
 //Mostar plato en la web
 router.post("/restaurante/platos/visibility/:id", (req, res) => {
   const platoId = req.params.id;
@@ -349,7 +422,6 @@ router.post("/restaurante/platos/visibility/:id", (req, res) => {
     }
   });
 });
-
 //Añadir plato al menu
 router.post("/restaurante/platos/add", (req, res) => {
   const { nombre, descripcion, precio } = req.body;
@@ -382,12 +454,110 @@ router.post("/restaurante/platos/add", (req, res) => {
     );
   });
 });
-router.get("/restaurante/perfil", (req, res) => {
-  res.render("restaurante/perfil");
+router.get("/restaurante/perfil", isAuthenticated, (req, res) => {
+  const userId = req.session.user?.id;
+
+  const queryRestaurante = `
+    SELECT id_restaurante, nombre, descripcion, direccion, telefono, estado 
+    FROM restaurantes 
+    WHERE id_usuario = ?
+  `;
+
+  const queryHorarios = `
+    SELECT id_horario, dias_semana, hora_inicio, hora_fin 
+    FROM horarios_restaurantes 
+    WHERE id_restaurante = ?
+  `;
+
+  conexion.query(queryRestaurante, [userId], (err, restauranteResults) => {
+    if (err) {
+      console.error("Error al obtener el perfil del restaurante:", err);
+      return res.status(500).send("Error al cargar el perfil del restaurante.");
+    }
+
+    if (restauranteResults.length === 0) {
+      return res.status(404).send("Restaurante no encontrado.");
+    }
+
+    const idRestaurante = restauranteResults[0].id_restaurante;
+
+    conexion.query(queryHorarios, [idRestaurante], (err, horariosResults) => {
+      if (err) {
+        console.error("Error al obtener los horarios del restaurante:", err);
+        return res
+          .status(500)
+          .send("Error al cargar los horarios del restaurante.");
+      }
+
+      res.render("restaurante/perfil", {
+        user: restauranteResults[0],
+        horarios: horariosResults,
+      });
+    });
+  });
 });
+
+// Actualizar el perfil del restaurante
+router.post("/restaurante/perfil", isAuthenticated, (req, res) => {
+  const userId = req.session.user?.id;
+  const { nombre, descripcion, direccion, telefono } = req.body;
+
+  const query = `
+    UPDATE restaurantes
+    SET nombre = ?, descripcion = ?, direccion = ?, telefono = ?
+    WHERE id_usuario = ?
+  `;
+  conexion.query(
+    query,
+    [nombre, descripcion, direccion, telefono, userId],
+    (err) => {
+      if (err) {
+        console.error("Error al actualizar el perfil:", err);
+        return res.status(500).send("Error al actualizar el perfil.");
+      }
+
+      res.redirect("/restaurante/perfil");
+    }
+  );
+});
+router.post(
+  "/restaurante/editar-horario",
+  isAuthenticated,
+  async (req, res) => {
+    const { id_horario, dias_semana, hora_inicio, hora_fin } = req.body;
+
+    // Verifica que los datos están llegando correctamente
+    console.log("Datos recibidos en el servidor:", {
+      id_horario,
+      dias_semana,
+      hora_inicio,
+      hora_fin,
+    });
+
+    try {
+      const query = `
+      UPDATE horarios_restaurantes
+      SET dias_semana = ?, hora_inicio = ?, hora_fin = ?
+      WHERE id_horario = ?
+    `;
+
+      await conexion.query(query, [
+        dias_semana,
+        hora_inicio,
+        hora_fin,
+        id_horario,
+      ]);
+
+      res.redirect("/restaurante/perfil");
+    } catch (err) {
+      console.error("Error al actualizar el horario:", err);
+      res.status(500).send("Error al actualizar el horario");
+    }
+  }
+);
+
 // Middleware para verificar si el usuario tiene un restaurante asociado
 const verificarRestaurante = (req, res, next) => {
-  // Suponiendo que req.user tiene la información del usuario autenticado
   const userId = req.session.user?.id;
 
   const query = `SELECT id_restaurante FROM restaurantes WHERE id_usuario = ?`;
@@ -761,6 +931,70 @@ router.get("/user/mis-pedidos", isAuthenticated, (req, res) => {
     res.render("user/mis-pedidos", { reservas: results });
   });
 });
+/*
+router.get("/vistaRest", (req, res) => {
+  const id_restaurante = req.query.id_restaurante;
+  const fechaSeleccionada =
+    req.query.fecha || new Date().toISOString().split("T")[0];
+
+  const restauranteQuery =
+    "SELECT * FROM restaurantes WHERE id_restaurante = ?";
+  const platosQuery =
+    "SELECT * FROM platos WHERE id_restaurante = ? AND visible = TRUE";
+
+  // Modificada la consulta de franjas para omitir la tabla franjas_horarias
+  const franjasQuery = `
+    SELECT hr.horarios
+    FROM horarios_restaurantes hr
+    WHERE hr.id_restaurante = ?
+    AND FIND_IN_SET(DAYOFWEEK(?), hr.dias_semana)
+  `;
+
+  conexion.query(
+    restauranteQuery,
+    [id_restaurante],
+    (error, restauranteResults) => {
+      if (error) {
+        console.error("Error en la consulta de restaurantes:", error);
+        return res.status(500).send("Error en la consulta");
+      }
+
+      conexion.query(platosQuery, [id_restaurante], (error, platosResults) => {
+        if (error) {
+          console.error("Error en la consulta de platos:", error);
+          return res.status(500).send("Error en la consulta");
+        }
+
+        conexion.query(
+          franjasQuery,
+          [id_restaurante, fechaSeleccionada],
+          (error, franjasResults) => {
+            if (error) {
+              console.error("Error en la consulta de franjas horarias:", error);
+              return res.status(500).send("Error en la consulta");
+            }
+
+            // Formatear los horarios obtenidos (si es necesario)
+            const horarios = franjasResults
+              .map((franja) => {
+                const horarioArray = franja.horarios.split(",");
+                return horarioArray.map((h) => h.trim());
+              })
+              .flat();
+
+            // Renderizar la vista con los datos obtenidos
+            res.render("vistaRest", {
+              restaurante: restauranteResults[0],
+              platos: platosResults,
+              horarios: horarios, // Se pasa la lista de horarios directamente
+              fechaSeleccionada: fechaSeleccionada,
+            });
+          }
+        );
+      });
+    }
+  );
+});*/
 
 router.get("/vistaRest", (req, res) => {
   const id_restaurante = req.query.id_restaurante;
@@ -777,13 +1011,10 @@ router.get("/vistaRest", (req, res) => {
 
   //Poner cuando se crean los horarios en la pagina de dashboard restaurantes
   // generarFranjas();
-  const franjasQuery = `
-    SELECT fh.franja_inicio, fh.franja_fin, fh.disponibilidad
-    FROM franjas_horarias fh
-    JOIN horarios_restaurantes hr ON fh.id_horario = hr.id_horario
-    WHERE hr.id_restaurante = ?
-    AND fh.disponibilidad = 1
-    AND FIND_IN_SET(DAYOFWEEK(?), hr.dias_semana)
+  const horariosQuery = `
+ SELECT hr.dias_semana, hr.hora_inicio, hr.hora_fin
+    FROM horarios_restaurantes hr
+    WHERE hr.id_restaurante = ? AND FIND_IN_SET(DAYOFWEEK(?), hr.dias_semana)
   `;
 
   // Consulta los datos del restaurante
@@ -805,19 +1036,17 @@ router.get("/vistaRest", (req, res) => {
 
         // Consulta las franjas horarias disponibles
         conexion.query(
-          franjasQuery,
+          horariosQuery,
           [id_restaurante, fechaSeleccionada],
-          (error, franjasResults) => {
+          (error, horariosResults) => {
             if (error) {
-              console.error("Error en la consulta de franjas horarias:", error);
+              console.error("Error en la consulta de horarios:", error);
               return res.status(500).send("Error en la consulta");
             }
 
-            // Formatear las franjas horarias si es necesario
-            franjasResults = franjasResults.map((franja) => {
-              const [horaInicioH, horaInicioM] =
-                franja.franja_inicio.split(":");
-              const [horaFinH, horaFinM] = franja.franja_fin.split(":");
+            horariosResults = horariosResults.map((horario) => {
+              const [horaInicioH, horaInicioM] = horario.hora_inicio.split(":");
+              const [horaFinH, horaFinM] = horario.hora_fin.split(":");
               const horaInicio12h = `${horaInicioH % 12 || 12}:${horaInicioM} ${
                 horaInicioH >= 12 ? "PM" : "AM"
               }`;
@@ -826,9 +1055,9 @@ router.get("/vistaRest", (req, res) => {
               }`;
 
               return {
-                ...franja,
-                franja_inicio: horaInicio12h,
-                franja_fin: horaFin12h,
+                ...horario,
+                hora_inicio: horaInicio12h,
+                hora_fin: horaFin12h,
               };
             });
 
@@ -838,7 +1067,7 @@ router.get("/vistaRest", (req, res) => {
               fecha: fechaSeleccionada,
               platos: platosResults,
               restaurants: restauranteResults,
-              franjas: franjasResults,
+              horarios: horariosResults, // Usamos horarios aquí en lugar de franjas
             });
           }
         );

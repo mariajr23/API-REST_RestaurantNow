@@ -2,98 +2,99 @@
 <html lang="es">
   <head>
     <link
-      href="/node_modules/bootstrap/dist/css/bootstrap.min.css"
       rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.0/css/bootstrap.min.css"
     />
-
-    <script src="/node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <meta charset="utf-8" />
     <meta
       name="viewport"
       content="width=device-width, user-scalable=no, initial-scale=1.0, minimum-scale=1.0"
     />
     <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-
-    <!-- Favicons -->
-    <link href="assets/img/favicon.png" rel="icon" />
-    <link href="assets/img/apple-touch-icon.png" rel="apple-touch-icon" />
-
-    <!-- Fonts -->
-    <link href="https://fonts.googleapis.com" rel="preconnect" />
-    <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&family=Inter:wght@100;200;300;400;500;600;700;800;900&family=Amatic+SC:wght@400;700&display=swap"
-      rel="stylesheet"
-    />
-
-    <!-- Vendor CSS Files -->
-    <link
-      href="assets/vendor/bootstrap/css/bootstrap.min.css"
-      rel="stylesheet"
-    />
-    <link
-      href="assets/vendor/bootstrap-icons/bootstrap-icons.css"
-      rel="stylesheet"
-    />
-    <link href="assets/vendor/aos/aos.css" rel="stylesheet" />
-    <link
-      href="assets/vendor/glightbox/css/glightbox.min.css"
-      rel="stylesheet"
-    />
-    <link href="assets/vendor/swiper/swiper-bundle.min.css" rel="stylesheet" />
-
-    <!-- Main CSS File -->
-    <link href="assets/css/main.css" rel="stylesheet" />
-    <link href="assets/css/estilos.css" rel="stylesheet" />
+    <title>RestaurantNow</title>
+    <link rel="stylesheet" href="/css/estilos.css" />
+    <link rel="icon" href="/favicon.png" />
+    <style>
+      body {
+        background-color: #f8f9fa;
+      }
+      .form-signin {
+        max-width: 500px;
+        padding: 20px;
+        margin: auto;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+      }
+      .form-signin img {
+        margin-bottom: 15px;
+      }
+      .form-floating label {
+        margin-bottom: 0;
+      }
+      .btn-bg-black {
+        background-color: #343a40;
+        color: #fff;
+      }
+      .btn-bg-black:hover {
+        background-color: #23272b;
+        color: #fff;
+      }
+      .footer-logo {
+        max-width: 50px;
+      }
+      .footer-text {
+        color: #6c757d;
+      }
+      .nav-link {
+        color: #343a40 !important;
+      }
+      .nav-link:hover {
+        color: #007bff !important;
+      }
+      .text-center {
+        text-align: center;
+      }
+    </style>
   </head>
-  <body class="index-page">
-    <header id="header" class="header d-flex align-items-center sticky-top">
-      <div
-        class="container position-relative d-flex align-items-center justify-content-between"
+  <body class="text-center">
+    <nav
+      class="container d-flex flex-wrap justify-content-center py-3 mb-4 text-dark border-bottom"
+    >
+      <a
+        href="/"
+        class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-decoration-none text-dark"
       >
-        <a href="/" class="logo d-flex align-items-center me-auto me-xl-0">
-          <!-- <img src="assets/img/logo.png" alt=""> -->
-          <h1 class="sitename">RestaurantNow</h1>
-          <span>.</span>
-        </a>
-        <nav id="navmenu" class="navmenu">
-          <ul class="nav nav-pills">
-            <li class="nav-item">
-              <a
-                href="/restaurantes"
-                class="nav-link text-dark"
-                aria-current="page"
-                >Restaurantes</a
-              >
-            </li>
-            <% if (!user) { %>
-            <li class="nav-item">
-              <a href="/login" class="nav-link text-dark">Iniciar Sesión</a>
-            </li>
-            <li class="nav-item">
-              <a href="/registro" class="nav-link text-dark">Registrarse</a>
-            </li>
-            <% } else { %>
-            <li class="nav-item">
-              <a href="/user/perfil" class="nav-link text-dark">Perfil</a>
-            </li>
-            <li class="nav-item">
-              <a href="/user/mis-pedidos" class="nav-link text-dark"
-                >Mis Pedidos</a
-              >
-            </li>
-            <li class="nav-item">
-              <a href="/logout" class="nav-link text-dark">Cerrar Sesión</a>
-            </li>
-            <% } %>
-          </ul>
-        </nav>
-
-        <a class="btn-getstarted" href="/restaurantes">Reservar</a>
-      </div>
-    </header>
+        <span class="fs-4">RestaurantNow</span>
+      </a>
+      <ul class="nav nav-pills">
+        <li class="nav-item">
+          <a href="/restaurantes" class="nav-link text-dark" aria-current="page"
+            >Restaurantes</a
+          >
+        </li>
+        <% if (!user) { %>
+        <li class="nav-item">
+          <a href="/login" class="nav-link text-dark">Iniciar Sesión</a>
+        </li>
+        <li class="nav-item">
+          <a href="/registro" class="nav-link text-dark">Registrarse</a>
+        </li>
+        <% } else { %>
+        <li class="nav-item">
+          <a href="/user/perfil" class="nav-link text-dark">Perfil</a>
+        </li>
+        <li class="nav-item">
+          <a href="/user/mis-pedidos" class="nav-link text-dark">Mis Pedidos</a>
+        </li>
+        <li class="nav-item">
+          <a href="/logout" class="nav-link text-dark">Cerrar Sesión</a>
+        </li>
+        <% } %>
+      </ul>
+    </nav>
     <main class="login">
-      <form class="form-signin" action="/restaurante/crear" method="POST">
+      <form class="form-signin" action="/registrar/cliente" method="POST">
         <img
           class="mb-4"
           src="/images/logo.png"
@@ -101,63 +102,80 @@
           width="80"
           height="auto"
         />
-        <h1 class="h3 mb-3 fw-normal">Crear tu Restaurante</h1>
-
+        <h1 class="h3 mb-3 fw-normal">Únete a nosotros</h1>
         <div class="form-group mb-3">
-          <label for="nombreRestaurante">Nombre del Restaurante</label>
+          <label for="floatingNombre">Nombre</label>
           <input
             type="text"
             class="form-control"
-            id="nombreRestaurante"
-            name="nombre"
+            id="floatingNombre"
             placeholder="Nombre"
-            required
-            value="<%= user.nombre %>"
-          />
-        </div>
-
-        <div class="form-group mb-3">
-          <label for="descripcionRestaurante">Descripción</label>
-          <textarea
-            class="form-control"
-            id="descripcionRestaurante"
-            name="descripcion"
-            placeholder="Descripción del restaurante"
-            required
-          ></textarea>
-        </div>
-
-        <div class="form-group mb-3">
-          <label for="direccionRestaurante">Dirección</label>
-          <input
-            type="text"
-            class="form-control"
-            id="direccionRestaurante"
-            name="direccion"
-            placeholder="Dirección"
+            name="nombre"
             required
           />
         </div>
-
         <div class="form-group mb-3">
-          <label for="telefonoRestaurante">Teléfono</label>
+          <label for="floatingApellido">Apellido</label>
           <input
             type="text"
             class="form-control"
-            id="telefonoRestaurante"
-            name="telefono"
+            id="floatingApellido"
+            placeholder="Apellido"
+            name="apellido"
+            required
+          />
+        </div>
+        <div class="form-group mb-3">
+          <label for="floatingEmail">Email</label>
+          <input
+            type="email"
+            class="form-control"
+            id="floatingEmail"
+            placeholder="email@ejemplo.com"
+            name="email"
+            required
+          />
+        </div>
+        <div class="form-group mb-3">
+          <label for="floatingPassword">Contraseña</label>
+          <input
+            type="password"
+            class="form-control"
+            id="floatingPassword"
+            placeholder="Contraseña"
+            name="contrasena"
+            required
+          />
+        </div>
+        <div class="form-group mb-3">
+          <label for="floatingPasswordConfirm">Confirmar Contraseña</label>
+          <input
+            type="password"
+            class="form-control"
+            id="floatingPasswordConfirm"
+            placeholder="Confirmar Contraseña"
+            name="contrasenaConfirmar"
+            required
+          />
+        </div>
+        <div class="form-group mb-3">
+          <label for="floatingTelefono">Teléfono</label>
+          <input
+            type="text"
+            class="form-control"
+            id="floatingTelefono"
             placeholder="Teléfono"
+            name="telefono"
             required
-            value="<%= user.telefono %>"
           />
         </div>
-
-        <button class="btn btn-bg-black my-2" type="submit">
-          Confirmar Registro
-        </button>
+        <button class="btn btn-bg-black my-2" type="submit">Confirmar</button>
+        <p class="mt-3">
+          ¿Ya tienes una cuenta?
+          <a href="/login" class="text-primary">Inicia sesión</a>
+        </p>
       </form>
     </main>
-
     <footer
       class="d-flex flex-wrap justify-content-between align-items-center py-3 my-4 border-top"
     >

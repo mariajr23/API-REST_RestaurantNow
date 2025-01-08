@@ -176,12 +176,13 @@
                   />
                 </div>
               </div>
+              <!-- Hora de Reserva -->
               <div class="form-group">
                 <label for="hora">Hora de Reserva</label>
                 <div>
-                  <% franjas.forEach(franja => { %>
+                  <% horarios.forEach(horario => { %>
                   <button class="btn btn-outline-secondary" type="button">
-                    <%= franja.franja_inicio %>
+                    <%= horario %>
                   </button>
                   <% }); %>
                 </div>
@@ -222,7 +223,6 @@
           }
         });
 
-        // Actualización del precio final
         checkboxes.forEach(function (checkbox) {
           checkbox.addEventListener("change", function () {
             let precioTotal = 0;
