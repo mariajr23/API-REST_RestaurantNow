@@ -120,6 +120,11 @@
       <section class="container">
         <h2>Platos Disponibles</h2>
         <form action="/reservar" method="POST">
+          <input
+            type="hidden"
+            name="id_restaurante"
+            value="<%= id_restaurante %>"
+          />
           <!-- Barra de búsqueda -->
           <div class="mb-3">
             <input
@@ -156,38 +161,44 @@
 
           <!-- Selección de Fecha y Hora -->
           <div class="custom-card">
-            <h5>Selecciona la Fecha y Hora</h5>
-            <div class="row">
-              <!-- Fecha -->
-              <div class="col-md-6">
-                <label for="fecha" class="form-label">Fecha:</label>
-                <div class="input-group">
-                  <div class="input-group-prepend">
-                    <span class="input-group-text"
-                      ><i class="bi bi-calendar-date"></i
-                    ></span>
-                  </div>
-                  <input
-                    type="date"
-                    name="fecha"
-                    id="fecha"
-                    class="form-control"
-                    required
-                  />
-                </div>
+            <h3>Selecciona la Fecha y Hora</h3>
+            <form method="POST" action="/reservar">
+              <div>
+                <label for="fecha">Fecha:</label>
+                <input
+                  type="date"
+                  id="fecha"
+                  name="fecha"
+                  value="<%= fecha %>"
+                  required
+                />
               </div>
-              <!-- Hora de Reserva -->
-              <div class="form-group">
-                <label for="hora">Hora de Reserva</label>
+
+              <div>
+                <h4>Hora de Reserva:</h4>
                 <div>
-                  <% horarios.forEach(horario => { %>
-                  <button class="btn btn-outline-secondary" type="button">
-                    <%= horario %>
+                  <% horarios.forEach((horario) => { %> <% if
+                  (horario.disponibilidad === 1) { %>
+                  <!-- Botón habilitado para horarios disponibles -->
+                  <button
+                    type="submit"
+                    name="hora"
+                    value="<%= horario.franja_inicio %>"
+                    class="btn btn-success"
+                  >
+                    <%= horario.franja_inicio %>
                   </button>
-                  <% }); %>
+                  <% } else { %>
+                  <!-- Botón deshabilitado para horarios no disponibles -->
+                  <button class="btn btn-secondary" disabled>
+                    <%= horario.franja_inicio %>
+                  </button>
+                  <% } %> <% }); %>
                 </div>
               </div>
-            </div>
+
+              <button type="submit" class="btn btn-primary">Reservar</button>
+            </form>
           </div>
 
           <input
