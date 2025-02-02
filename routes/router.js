@@ -1089,34 +1089,27 @@ router.post("/checkout", (req, res) => {
     restaurante: getRestauranteById(id_restaurante),
   });
 });
+const moment = require("moment");
 
-router.post("/reservar", (req, res) => {
+router.post("/reservar", isAuthenticated, (req, res) => {
+  // Destructuramos los datos enviados desde el formulario
   const { fecha, hora, platosSeleccionados, id_restaurante } = req.body;
 
-  console.log("Datos recibidos:", req.body);
-
+  // Validación básica de la hora
   if (!hora) {
     return res.status(400).send("La hora es obligatoria.");
   }
 
   const usuario = req.session.user;
-  const nombre_cliente = usuario.nombre;
+  const id_usuario = usuario.id;
   const telefono_cliente = usuario.telefono;
 
-  console.log("Datos recibidos:", {
-    id_restaurante,
-    fecha,
-    hora,
-    nombre_cliente,
-    telefono_cliente,
-    platosSeleccionados,
-  });
-
+  // Verificación de que todos los campos necesarios estén presentes
   if (
     !id_restaurante ||
     !fecha ||
     !hora ||
-    !nombre_cliente ||
+    !id_usuario ||
     !telefono_cliente ||
     !platosSeleccionados
   ) {
@@ -1125,29 +1118,63 @@ router.post("/reservar", (req, res) => {
       .send("Faltan datos necesarios para realizar la reserva");
   }
 
+  // Asegurarse de que platosSeleccionados sea un array
   const platosArray = Array.isArray(platosSeleccionados)
     ? platosSeleccionados
     : [platosSeleccionados];
 
-  const reservaExistenteQuery = `SELECT id_reserva FROM reservas WHERE id_restaurante = ? AND fecha = ? AND hora = ?`;
+  // Obtener un valor único para id_restaurante en caso de venir como array
+  let id_restauranteFinal = id_restaurante;
+  if (Array.isArray(id_restauranteFinal)) {
+    id_restauranteFinal = id_restauranteFinal[0];
+  }
+
+  // Formatear la fecha (YYYY-MM-DD)
+  const fechaFormateada = new Date(fecha).toISOString().split("T")[0];
+
+  // Convertir la hora al formato 24 horas (HH:mm:ss) utilizando Moment.js
+  const hora24 = moment(hora, "h:mm A").format("HH:mm:ss");
+
+  console.log("Verificación de parámetros:");
+  console.log("id_usuario:", id_usuario);
+  console.log("id_restauranteFinal:", id_restauranteFinal);
+  console.log("fechaFormateada:", fechaFormateada);
+  console.log("hora (24 horas):", hora24);
+
+  // Consulta para verificar si ya existe una reserva en ese horario
+  const reservaExistenteQuery = `
+    SELECT id_reserva 
+    FROM reservas 
+    WHERE id_usuario = ? 
+      AND id_restaurante = ? 
+      AND fecha = ? 
+      AND hora = ? 
+      AND estado != 'cancelada'
+  `;
+
+  // Verificar si ya existe una reserva en la misma hora para ese usuario
   conexion.query(
     reservaExistenteQuery,
-    [id_restaurante, fecha, hora],
+    [id_usuario, id_restauranteFinal, fechaFormateada, hora24],
     (error, results) => {
       if (error) {
-        console.error("Error en la consulta:", error);
-        return res.status(500).send("Error en la consulta");
+        console.error("Error en la consulta de reservas existentes:", error);
+        return res.status(500).send("Error al verificar la reserva");
       }
 
       if (results.length > 0) {
         return res.status(400).send("Horario no disponible");
       }
 
-      const reservaQuery = `INSERT INTO reservas (id_restaurante, fecha, hora, nombre_cliente, telefono_cliente) VALUES (?, ?, ?, ?, ?)`;
+      // Si no hay reservas, insertamos la nueva reserva
+      const reservaQuery = `
+        INSERT INTO reservas (id_usuario, id_restaurante, fecha, hora, estado, id_pago)
+        VALUES (?, ?, ?, ?, 'pendiente', NULL)
+      `;
 
       conexion.query(
         reservaQuery,
-        [id_restaurante, fecha, hora, nombre_cliente, telefono_cliente],
+        [id_usuario, id_restauranteFinal, fechaFormateada, hora24],
         (error, result) => {
           if (error) {
             console.error("Error al insertar la reserva:", error);
@@ -1156,18 +1183,22 @@ router.post("/reservar", (req, res) => {
 
           const id_reserva = result.insertId;
 
-          // Obtener los detalles de los platos seleccionados
+          // Consulta para obtener los platos seleccionados (por id_plato)
           const platosQuery = `SELECT id_plato, nombre FROM platos WHERE id_plato IN (?)`;
+
           conexion.query(platosQuery, [platosArray], (error, platos) => {
             if (error) {
               console.error("Error al obtener los platos:", error);
               return res.status(500).send("Error al obtener los platos");
             }
 
-            // Insertar los platos en la tabla de detalles_reservas
+            // Insertar los platos seleccionados en la tabla reserva_platos
             const platosPromises = platos.map((plato) => {
-              const reservaPlatoQuery = `INSERT INTO detalles_reservas (id_reserva, id_plato) VALUES (?, ?)`;
               return new Promise((resolve, reject) => {
+                const reservaPlatoQuery = `
+                  INSERT INTO reserva_platos (id_reserva, id_plato)
+                  VALUES (?, ?)
+                `;
                 conexion.query(
                   reservaPlatoQuery,
                   [id_reserva, plato.id_plato],
@@ -1179,9 +1210,49 @@ router.post("/reservar", (req, res) => {
               });
             });
 
+            // Después de insertar todos los platos, actualizamos la disponibilidad del horario
             Promise.all(platosPromises)
               .then(() => {
-                res.redirect("/vistaRest?id_restaurante=" + id_restaurante);
+                const actualizarHorarioQuery = `
+                  UPDATE franjas_horarias fh
+                  JOIN horarios_restaurantes hr ON fh.id_horario = hr.id_horario
+                  SET fh.disponibilidad = 0
+                  WHERE hr.id_restaurante = ? 
+                    AND fh.franja_inicio = ?
+                `;
+
+                conexion.query(
+                  actualizarHorarioQuery,
+                  [id_restauranteFinal, hora24],
+                  (error, result) => {
+                    if (error) {
+                      console.error(
+                        "Error al actualizar disponibilidad del horario:",
+                        error
+                      );
+                      return res
+                        .status(500)
+                        .send("Error al actualizar disponibilidad del horario");
+                    }
+
+                    console.log(
+                      "Filas afectadas en UPDATE:",
+                      result.affectedRows
+                    );
+                    if (result.affectedRows === 0) {
+                      return res
+                        .status(400)
+                        .send(
+                          "No se encontró la franja horaria para actualizar"
+                        );
+                    }
+
+                    // Redirigir a la vista del restaurante
+                    res.redirect(
+                      "/vistaRest?id_restaurante=" + id_restauranteFinal
+                    );
+                  }
+                );
               })
               .catch((error) => {
                 console.error(
