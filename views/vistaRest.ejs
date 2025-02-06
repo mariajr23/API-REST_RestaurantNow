@@ -204,11 +204,11 @@
 
     <script>
       document.addEventListener("DOMContentLoaded", function () {
-        const fechaInput = document.getElementById("fecha");
-        const horaSelect = document.getElementById("hora");
         const searchInput = document.getElementById("searchInput");
         const platosList = document.getElementById("platosList");
-        const checkboxes = document.querySelectorAll(".form-check-input");
+        const cantidadInputs = document.querySelectorAll(
+          ".form-control[type='number']"
+        );
         const form = document.querySelector("form");
 
         // Filtrado de platos
@@ -224,20 +224,24 @@
           }
         });
 
-        checkboxes.forEach(function (checkbox) {
-          checkbox.addEventListener("change", function () {
+        // Actualizar precio total cuando cambian las cantidades
+        cantidadInputs.forEach(function (input) {
+          input.addEventListener("input", function () {
             let precioTotal = 0;
-            checkboxes.forEach(function (checkbox) {
-              if (checkbox.checked) {
-                const precio = parseFloat(
-                  checkbox
-                    .closest(".card")
-                    .querySelector(".card-text")
-                    .textContent.split("Precio: $")[1]
-                );
-                precioTotal += precio;
-              }
+
+            cantidadInputs.forEach(function (input) {
+              const cantidad = parseInt(input.value) || 0; // Asegurarse de que sea un número entero
+              const precioPlato = parseFloat(
+                input
+                  .closest(".card")
+                  .querySelector(".card-text")
+                  .textContent.split("Precio: $")[1]
+              );
+
+              precioTotal += cantidad * precioPlato; // Multiplicar cantidad por el precio
             });
+
+            // Actualizar el precio final en la vista
             document.getElementById(
               "precio-final"
             ).textContent = `Precio Final: $${precioTotal.toFixed(2)}`;
@@ -245,6 +249,9 @@
         });
 
         // Cambiar horarios según fecha
+        const fechaInput = document.getElementById("fecha");
+        const horaSelect = document.getElementById("hora");
+
         fechaInput.addEventListener("change", function () {
           const fecha = fechaInput.value;
           const idRestaurante = "<%= id_restaurante %>";
@@ -276,6 +283,78 @@
             alert("Por favor, selecciona una hora.");
           }
         });
+      });
+      const fechaInput = document.getElementById("fecha");
+      const horaSelect = document.getElementById("hora");
+      const searchInput = document.getElementById("searchInput");
+      const platosList = document.getElementById("platosList");
+      const checkboxes = document.querySelectorAll(".form-check-input");
+      const form = document.querySelector("form");
+
+      // Filtrado de platos
+      searchInput.addEventListener("input", function () {
+        const query = searchInput.value.toLowerCase();
+        const platos = platosList.getElementsByClassName("card");
+
+        for (let plato of platos) {
+          const text = plato
+            .querySelector(".card-title")
+            .textContent.toLowerCase();
+          plato.style.display = text.includes(query) ? "" : "none";
+        }
+      });
+
+      checkboxes.forEach(function (checkbox) {
+        checkbox.addEventListener("change", function () {
+          let precioTotal = 0;
+          checkboxes.forEach(function (checkbox) {
+            if (checkbox.checked) {
+              const precio = parseFloat(
+                checkbox
+                  .closest(".card")
+                  .querySelector(".card-text")
+                  .textContent.split("Precio: $")[1]
+              );
+              precioTotal += precio;
+            }
+          });
+          document.getElementById(
+            "precio-final"
+          ).textContent = `Precio Final: $${precioTotal.toFixed(2)}`;
+        });
+      });
+
+      // Cambiar horarios según fecha
+      fechaInput.addEventListener("change", function () {
+        const fecha = fechaInput.value;
+        const idRestaurante = "<%= id_restaurante %>";
+
+        fetch(
+          `/horariosDisponibles?fecha=${fecha}&id_restaurante=${idRestaurante}`
+        )
+          .then((response) => response.json())
+          .then((horarios) => {
+            horaSelect.innerHTML = "";
+            horarios.forEach((horario) => {
+              const option = document.createElement("option");
+              option.value = horario.hora;
+              option.textContent = `${horario.hora} - ${
+                horario.reservado === 1 ? "Reservado" : "Disponible"
+              }`;
+              if (horario.reservado === 1) {
+                option.disabled = true;
+              }
+              horaSelect.appendChild(option);
+            });
+          });
+      });
+
+      // Verificar que el valor de la hora está correctamente configurado antes de enviar
+      form.addEventListener("submit", function (event) {
+        if (!horaSelect.value) {
+          event.preventDefault();
+          alert("Por favor, selecciona una hora.");
+        }
       });
     </script>
   </body>
