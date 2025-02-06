@@ -115,7 +115,6 @@
         </div>
         <% }) %>
       </section>
-
       <!-- Platos disponibles -->
       <section class="container">
         <h2>Platos Disponibles</h2>
@@ -125,6 +124,7 @@
             name="id_restaurante"
             value="<%= id_restaurante %>"
           />
+
           <!-- Barra de búsqueda -->
           <div class="mb-3">
             <input
@@ -141,16 +141,17 @@
               <div class="card-body">
                 <h5 class="card-title"><%= plato.nombre %></h5>
                 <p class="card-text">Precio: $<%= plato.precio.toFixed(2) %></p>
-                <div class="form-check">
-                  <input
-                    class="form-check-input"
-                    type="checkbox"
-                    name="platosSeleccionados"
-                    value="<%= plato.id_plato %>"
-                    aria-label="..."
-                  />
-                  <label class="form-check-label">Seleccionar</label>
-                </div>
+
+                <label for="plato_<%= plato.id_plato %>">Cantidad:</label>
+                <input
+                  class="form-control"
+                  type="number"
+                  name="platosSeleccionados[<%= plato.id_plato %>]"
+                  id="plato_<%= plato.id_plato %>"
+                  min="0"
+                  value="0"
+                  aria-label="Cantidad de <%= plato.nombre %>"
+                />
               </div>
             </div>
             <% }) %>
@@ -195,11 +196,6 @@
             </div>
           </div>
 
-          <input
-            type="hidden"
-            name="id_restaurante"
-            value="<%= id_restaurante %>"
-          />
           <button type="submit" class="btn btn-primary mt-3">Reservar</button>
         </form>
       </section>

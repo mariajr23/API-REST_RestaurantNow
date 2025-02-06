@@ -14,7 +14,7 @@ app.set("views", path.join(__dirname, "views"));
 
 // Configuración de middlewares
 app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(
   session({

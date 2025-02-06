@@ -51,7 +51,7 @@
               <th>Teléfono Cliente</th>
               <th>Fecha</th>
               <th>Hora</th>
-              <th>Precio</th>
+              <th>Platos</th>
               <th>Acciones</th>
             </tr>
           </thead>
@@ -63,7 +63,7 @@
               <td><%= reserva.telefono_cliente %></td>
               <td><%= reserva.fecha %></td>
               <td><%= reserva.hora %></td>
-              <td>$<%= reserva.precio %></td>
+              <td><%= reserva.platos %></td>
               <td>
                 <a
                   href="/restaurante/reservas/aceptar/<%= reserva.id_reserva %>"
@@ -95,9 +95,8 @@
               <th>Teléfono Cliente</th>
               <th>Fecha</th>
               <th>Hora</th>
-              <th>Precio</th>
+              <th>Platos</th>
               <th>Estado</th>
-              <!-- Nueva columna para el estado -->
             </tr>
           </thead>
           <tbody>
@@ -108,12 +107,12 @@
               <td><%= reserva.telefono_cliente %></td>
               <td><%= reserva.fecha %></td>
               <td><%= reserva.hora %></td>
-              <td>$<%= reserva.precio %></td>
+              <td><%= reserva.platos %></td>
               <td>
-                <%= reserva.estado === 1 ? 'Pendiente' : reserva.estado === 2 ?
-                'Aceptada' : 'Rechazada' %>
+                <%= reserva.estado === 1 || reserva.estado === 'pendiente' ?
+                'Pendiente' : (reserva.estado === 2 || reserva.estado ===
+                'confirmada') ? 'Aceptada' : 'Rechazada' %>
               </td>
-              <!-- Estado mostrado aquí -->
             </tr>
             <% }) %> <% } else { %>
             <tr>
