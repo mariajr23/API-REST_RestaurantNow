@@ -13,10 +13,12 @@
     "url": "https://github.com/mariajr23/TFG_MJR24.git"
   },
   "dependencies": {
+    "@paypal/checkout-server-sdk": "^1.0.3",
     "bcrypt": "^5.1.1",
     "bootstrap": "^5.3.3",
     "cookie-parser": "^1.4.7",
-    "dotenv": "^16.4.5",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
     "ejs": "^3.1.10",
     "express": "^4.19.2",
     "express-session": "^1.18.1",

@@ -1,12 +1,25 @@
 const express = require("express");
 const router = express.Router();
 const bcrypt = require("bcrypt");
+const fetch = require("node-fetch");
 const saltRounds = 10;
 const nodemailer = require("nodemailer");
 const crypto = require("crypto");
+const moment = require("moment");
 const { conexion, buscarRestaurantes } = require("../database/bd");
 const { isAuthenticated, isAdmin } = require("../middleware/auth");
 const { User } = require("../models/User");
+const paypal = require("@paypal/checkout-server-sdk");
+const paypalClient = require("./paypal");
+
+require("dotenv").config();
+// Configuración del entorno de PayPal en sandbox
+const environment = new paypal.core.SandboxEnvironment(
+  "PAYPAL_CLIENT_ID", // Reemplaza con tu Client ID de Sandbox
+  "PAYPAL_CLIENT_SECRET" // Reemplaza con tu Secret de Sandbox
+);
+
+//const client = new paypal.core.PayPalHttpClient(environment);
 
 router.get("/verificar-sesion", (req, res) => {
   if (req.session && req.session.user) {
@@ -281,17 +294,16 @@ router.get("/restaurante/reservas", isAuthenticated, (req, res) => {
       const restauranteId = results[0].id_restaurante;
 
       conexion.query(
-        `SELECT r.id_reserva, r.fecha, r.hora, r.estado, 
-       u.nombre AS nombre_cliente, u.telefono AS telefono_cliente,
-       GROUP_CONCAT(CONCAT(rp.cantidad, 'x ', p.nombre) SEPARATOR ', ') AS platos
-FROM reservas r
-JOIN usuarios u ON r.id_usuario = u.id_usuario
-LEFT JOIN reserva_platos rp ON r.id_reserva = rp.id_reserva
-LEFT JOIN platos p ON rp.id_plato = p.id_plato
-WHERE r.id_restaurante = ?
-GROUP BY r.id_reserva
-ORDER BY r.fecha ASC, r.hora ASC
-`,
+        `SELECT r.id_reserva, r.fecha, r.hora, r.estado, r.id_pago,
+   u.nombre AS nombre_cliente, u.telefono AS telefono_cliente,
+   GROUP_CONCAT(CONCAT(rp.cantidad, 'x ', p.nombre) SEPARATOR ', ') AS platos
+  FROM reservas r
+  JOIN usuarios u ON r.id_usuario = u.id_usuario
+  LEFT JOIN reserva_platos rp ON r.id_reserva = rp.id_reserva
+  LEFT JOIN platos p ON rp.id_plato = p.id_plato
+  WHERE r.id_restaurante = ?
+  GROUP BY r.id_reserva
+  ORDER BY r.fecha ASC, r.hora ASC`,
         [restauranteId],
         (err, reservas) => {
           if (err) {
@@ -317,19 +329,46 @@ ORDER BY r.fecha ASC, r.hora ASC
 });
 router.get("/restaurante/reservas/aceptar/:id_reserva", (req, res) => {
   const { id_reserva } = req.params;
+
   conexion.query(
-    "UPDATE reservas SET estado = 2 WHERE id_reserva = ?",
+    "SELECT estado FROM reservas WHERE id_reserva = ?",
     [id_reserva],
-    (err, result) => {
+    (err, results) => {
       if (err) {
         console.error(err);
-        return res.status(500).send("Error al aceptar la reserva.");
+        return res
+          .status(500)
+          .send("Error al obtener el estado de la reserva.");
       }
 
-      res.redirect("/restaurante/reservas");
+      if (results.length === 0) {
+        return res.status(404).send("Reserva no encontrada.");
+      }
+
+      const estado = results[0].estado;
+      if (estado === "confirmada" || estado === "cancelada") {
+        return res
+          .status(400)
+          .send("La reserva ya ha sido procesada y no puede modificarse.");
+      }
+
+      // Proceder con la aceptación
+      conexion.query(
+        "UPDATE reservas SET estado = 'confirmada' WHERE id_reserva = ?",
+        [id_reserva],
+        (err, result) => {
+          if (err) {
+            console.error(err);
+            return res.status(500).send("Error al aceptar la reserva.");
+          }
+
+          res.redirect("/restaurante/reservas");
+        }
+      );
     }
   );
 });
+
 router.get("/restaurante/reservas/rechazar/:id_reserva", (req, res) => {
   const { id_reserva } = req.params;
   conexion.query(
@@ -922,7 +961,7 @@ router.get("/user/mis-pedidos", isAuthenticated, (req, res) => {
     SELECT r.id_reserva, res.nombre AS nombre_restaurante, r.fecha, r.hora, r.estado, SUM(p.precio) AS precio_total
     FROM reservas r
     JOIN restaurantes res ON r.id_restaurante = res.id_restaurante
-    LEFT JOIN detalles_reservas dr ON r.id_reserva = dr.id_reserva
+    LEFT JOIN reservas dr ON r.id_reserva = dr.id_reserva
     LEFT JOIN platos p ON dr.id_plato = p.id_plato
     WHERE r.id_usuario = ?
     GROUP BY r.id_reserva, res.nombre, r.fecha, r.hora, r.estado
@@ -956,7 +995,6 @@ router.get("/vistaRest", (req, res) => {
     JOIN horarios_restaurantes hr ON fh.id_horario = hr.id_horario
     WHERE hr.id_restaurante = ?`;
 
-  // Consulta de datos del restaurante
   conexion.query(
     restauranteQuery,
     [id_restaurante],
@@ -1080,24 +1118,21 @@ function generarFranjas(intervaloMinutos = 15) {
   });
 }
 
-router.post("/checkout", (req, res) => {
-  const { platosSeleccionados, fecha, hora, id_restaurante } = req.body;
-
-  const id_usuario = req.session.userId;
-
-  const platos = getPlatosByIds(platosSeleccionados); // Implementar función que busque los platos por ID
-  const precioTotal = platos.reduce((total, plato) => total + plato.precio, 0);
-
-  res.render("resumenFactura", {
-    platos,
-    fecha,
-    hora,
-    precioTotal,
-    metodoPago: "paypal",
-    restaurante: getRestauranteById(id_restaurante),
+router.get("/resumenReserva", (req, res) => {
+  console.log(
+    "PayPal Client ID desde router.js:",
+    process.env.PAYPAL_CLIENT_ID
+  );
+  console.log("restaurante id:", id_restaurante);
+  res.render("resumenReserva", {
+    paypalClientId: process.env.PAYPAL_CLIENT_ID,
+    id_restaurante: req.query.restaurant,
+    fecha: req.query.fecha,
+    hora: req.query.hora,
+    platos: JSON.parse(req.query.platos || "[]"),
+    total: parseFloat(req.query.total).toFixed(2),
   });
 });
-const moment = require("moment");
 
 router.post("/reservar", isAuthenticated, (req, res) => {
   const { fecha, hora, id_restaurante, platosSeleccionados } = req.body;
@@ -1117,7 +1152,6 @@ router.post("/reservar", isAuthenticated, (req, res) => {
       .send("Faltan datos necesarios para realizar la reserva");
   }
 
-  // Convertimos los platosSeleccionados en el formato adecuado
   const platosArray = [];
   platosSeleccionados.forEach((plato, index) => {
     if (plato !== "0") {
@@ -1195,6 +1229,7 @@ router.post("/reservar", isAuthenticated, (req, res) => {
               }
 
               res.render("resumenReserva", {
+                paypalClientId: process.env.PAYPAL_CLIENT_ID,
                 id_restaurante: id_restauranteFinal,
                 fecha: fechaFormateada,
                 hora: hora24,
@@ -1214,12 +1249,8 @@ function calcularPrecioTotal(platosArray, callback) {
   let total = 0;
   let platosConNombre = [];
 
-  platosArray.forEach((plato, index) => {
-    const query = `
-      SELECT nombre, precio
-      FROM platos
-      WHERE id_plato = ?
-    `;
+  platosArray.forEach((plato) => {
+    const query = `SELECT nombre, precio FROM platos WHERE id_plato = ?`;
 
     conexion.query(query, [plato.id_plato], (err, results) => {
       if (err) {
@@ -1229,69 +1260,166 @@ function calcularPrecioTotal(platosArray, callback) {
 
       if (results.length > 0) {
         const platoDetails = results[0];
-        const precioPlato = platoDetails.precio;
-        total += precioPlato * plato.cantidad;
+        total += platoDetails.precio * plato.cantidad;
 
-        // Almacenamos el nombre directamente en la propiedad "nombre"
         platosConNombre.push({
           cantidad: plato.cantidad,
           nombre: platoDetails.nombre,
-          precio: precioPlato,
+          precio: platoDetails.precio,
         });
       }
 
-      // Cuando se hayan procesado todos los platos, llamamos al callback
       if (platosConNombre.length === platosArray.length) {
-        callback(null, platosConNombre, total);
+        callback(null, platosConNombre, total.toFixed(2));
       }
     });
   });
 }
+router.post("/capture-order", async (req, res) => {
+  const { orderID, fecha, hora, platos, total, id_restaurante } = req.body;
+  const userId = req.session.user.id;
 
-router.post("/realizarPago", isAuthenticated, (req, res) => {
-  const { fecha, hora, id_restaurante, platosSeleccionados } = req.body;
+  const request = new paypal.orders.OrdersCaptureRequest(orderID);
+  request.requestBody({});
 
-  // Aquí iría el código para verificar el pago
+  try {
+    const response = await paypalClient.execute(request);
 
-  // Si el pago es exitoso, insertamos la reserva
-  const reservaQuery = `
-    INSERT INTO reservas (id_usuario, id_restaurante, fecha, hora, estado, id_pago)
-    VALUES (?, ?, ?, ?, 'confirmada', ?)
-  `;
+    if (response.result.status === "COMPLETED") {
+      const reserva = {
+        id_usuario: userId,
+        id_restaurante: id_restaurante, // Corregido
+        fecha: fecha,
+        hora: hora,
+        estado: "pendiente", // La reserva queda pendiente hasta confirmación
+        total: total,
+        id_pago: orderID, // ID de pago de PayPal
+      };
 
-  conexion.query(
-    reservaQuery,
-    [id_usuario, id_restaurante, fecha, hora, id_pago],
-    (error, result) => {
-      if (error) {
-        console.error("Error al insertar la reserva:", error);
-        return res.status(500).send("Error al guardar la reserva");
-      }
+      // CORRECCIÓN: Ejecutar la consulta sin desestructurar el resultado
+      await conexion.query("INSERT INTO reservas SET ?", reserva);
 
-      // Luego insertamos los platos seleccionados
-      platosSeleccionados.forEach(({ id_plato, cantidad }) => {
-        const detallesReservaQuery = `
-        INSERT INTO reserva_platos (id_reserva, id_plato, cantidad)
-        VALUES (?, ?, ?)
-      `;
-        conexion.query(
-          detallesReservaQuery,
-          [result.insertId, id_plato, cantidad],
-          (error) => {
-            if (error) {
-              console.error(
-                "Error al insertar el detalle de la reserva:",
-                error
-              );
-            }
-          }
-        );
+      return res.json({
+        success: true,
+        message:
+          "Pago realizado con éxito. Reserva pendiente de confirmación del restaurante.",
+        details: response.result,
       });
-
-      res.send("Pago exitoso y reserva confirmada");
+    } else {
+      res.status(400).json({ message: "Error en el pago" });
     }
-  );
+  } catch (error) {
+    console.error("Error al capturar el pago:", error);
+    res.status(500).json({ message: "Error interno en el servidor" });
+  }
 });
+
+/*
+router.post("/capture-order", async (req, res) => {
+  const { orderID, userId, restaurantId, fecha, hora, platos, total } =
+    req.body;
+
+  const request = new paypal.orders.OrdersCaptureRequest(orderID);
+  request.requestBody({});
+
+  try {
+    const response = await paypalClient.execute(request);
+
+    if (response.result.status === "COMPLETED") {
+      // Guardar la reserva con el estado "pendiente"
+      const reserva = {
+        id_usuario: userId,
+        id_restaurante: restaurantId,
+        fecha: fecha,
+        hora: hora,
+        estado: "pendiente", // La reserva está pendiente hasta que el restaurante la confirme
+        total: total,
+        id_pago: orderID, // Guardamos el ID del pago
+      };
+
+      // Inserta la reserva con el id_pago y estado pendiente
+      const [result] = await conexion.query(
+        "INSERT INTO reservas SET ?",
+        reserva
+      );
+
+      res.json({
+        message:
+          "Pago realizado con éxito. Reserva pendiente de confirmación del restaurante.",
+        details: response.result,
+      });
+    } else {
+      res.status(400).json({ message: "Error en el pago" });
+    }
+  } catch (error) {
+    console.error("Error al capturar el pago:", error);
+    res.status(500).json({ message: "Error interno" });
+  }
+});*/
+
+/*
+router.post("/realizarPago", isAuthenticated, async (req, res) => {
+  const { fecha, hora, id_restaurante, platosSeleccionados, orderID } =
+    req.body;
+  const totalFormateado = parseFloat(total).toFixed(2);
+
+  try {
+    const request = new paypal.orders.OrdersCaptureRequest(orderID);
+    request.requestBody({
+      purchase_units: [
+        {
+          amount: {
+            currency_code: "USD",
+            value: totalFormateado,
+          },
+        },
+      ],
+    });
+    const response = await paypalClient.execute(request);
+
+    if (response.result.status !== "COMPLETED") {
+      return res.status(400).json({ message: "Pago no completado" });
+    }
+
+    const id_usuario = req.session.user.id;
+    const id_pago = response.result.id;
+
+    // Insertar reserva
+    const reservaQuery = `INSERT INTO reservas (id_usuario, id_restaurante, fecha, hora, estado, id_pago) VALUES (?, ?, ?, ?, 'confirmada', ?)`;
+    conexion.query(
+      reservaQuery,
+      [id_usuario, id_restaurante, fecha, hora, id_pago],
+      (error, result) => {
+        if (error) {
+          console.error("Error al insertar la reserva:", error);
+          return res.status(500).send("Error al guardar la reserva");
+        }
+
+        // Insertar los platos seleccionados
+        platosSeleccionados.forEach(({ id_plato, cantidad }) => {
+          const detallesReservaQuery = `INSERT INTO reserva_platos (id_reserva, id_plato, cantidad) VALUES (?, ?, ?)`;
+          conexion.query(
+            detallesReservaQuery,
+            [result.insertId, id_plato, cantidad],
+            (error) => {
+              if (error) {
+                console.error(
+                  "Error al insertar el detalle de la reserva:",
+                  error
+                );
+              }
+            }
+          );
+        });
+
+        res.json({ message: "Pago exitoso y reserva confirmada" });
+      }
+    );
+  } catch (error) {
+    console.error("Error al verificar el pago:", error);
+    res.status(500).json({ message: "Error interno al procesar el pago" });
+  }
+});*/
 
 router.get("/logout", (req, res) => {
   res.clearCookie("token");

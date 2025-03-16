@@ -4,6 +4,11 @@ const session = require("express-session");
 const cookieParser = require("cookie-parser");
 const path = require("path");
 const route = require("./routes/router");
+require("dotenv").config();
+const cors = require("cors");
+app.use(cors());
+
+//console.log("PayPal Client ID desde app.js:", process.env.PAYPAL_CLIENT_ID);
 
 app.set("view engine", "ejs");
 app.use(express.static(path.join(__dirname, "public")));

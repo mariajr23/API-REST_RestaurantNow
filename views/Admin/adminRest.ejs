@@ -44,51 +44,8 @@
     <link href="../assets/css/estilos.css" rel="stylesheet" />
   </head>
   <body class="index-page">
-    <header id="header" class="header d-flex align-items-center sticky-top">
-      <div
-        class="container position-relative d-flex align-items-center justify-content-between"
-      >
-        <a href="/" class="logo d-flex align-items-center me-auto me-xl-0">
-          <h1 class="sitename">RestaurantNow</h1>
-          <span>.</span>
-        </a>
-        <nav id="navmenu" class="navmenu">
-          <ul class="nav nav-pills">
-            <li class="nav-item">
-              <a
-                href="/restaurantes"
-                class="nav-link text-dark"
-                aria-current="page"
-                >Restaurantes</a
-              >
-            </li>
-            <% if (!user) { %>
-            <li class="nav-item">
-              <a href="/login" class="nav-link text-dark">Iniciar Sesión</a>
-            </li>
-            <li class="nav-item">
-              <a href="/registro" class="nav-link text-dark">Registrarse</a>
-            </li>
-            <% } else { %>
-            <li class="nav-item">
-              <a href="/user/perfil" class="nav-link text-dark">Perfil</a>
-            </li>
-            <li class="nav-item">
-              <a href="/user/mis-pedidos" class="nav-link text-dark"
-                >Mis Pedidos</a
-              >
-            </li>
-            <li class="nav-item">
-              <a href="/logout" class="nav-link text-dark">Cerrar Sesión</a>
-            </li>
-            <% } %>
-          </ul>
-        </nav>
-
-        <a class="btn-getstarted" href="/restaurantes">Reservar</a>
-      </div>
-    </header>
     <main>
+      <!-- Sidebar -->
       <nav class="sidebar">
         <h4>Admin Menu</h4>
         <ul class="nav flex-column">

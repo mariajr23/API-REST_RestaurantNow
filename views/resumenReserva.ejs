@@ -5,12 +5,6 @@
       href="/node_modules/bootstrap/dist/css/bootstrap.min.css"
       rel="stylesheet"
     />
-    <script src="/node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <meta charset="utf-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, user-scalable=no, initial-scale=1.0, minimum-scale=1.0"
-    />
   </head>
   <body>
     <div class="container mt-5">
@@ -30,25 +24,65 @@
         <li>No hay platos seleccionados.</li>
         <% } %>
       </ul>
+
       <h4>Precio Total: $<%= total %></h4>
 
-      <form action="/realizarPago" method="POST">
-        <input type="hidden" name="fecha" value="<%= fecha %>" />
-        <input type="hidden" name="hora" value="<%= hora %>" />
-        <input
-          type="hidden"
-          name="id_restaurante"
-          value="<%= id_restaurante %>"
-        />
-        <input
-          type="hidden"
-          name="platosSeleccionados"
-          value="<%= JSON.stringify(platos) %>"
-        />
+      <script src="https://www.paypal.com/sdk/js?client-id=<%=paypalClientId%>&currency=USD"></script>
 
-        <!-- Aquí podrías mostrar el formulario de pago con algún método que quieras utilizar -->
-        <button type="submit" class="btn btn-primary">Realizar Pago</button>
-      </form>
+      <div id="paypal-button-container"></div>
     </div>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        paypal
+          .Buttons({
+            createOrder: function (data, actions) {
+              return actions.order.create({
+                purchase_units: [
+                  {
+                    amount: {
+                      value: "<%= total %>", // Precio total
+                    },
+                  },
+                ],
+              });
+            },
+            onApprove: function (data, actions) {
+              return actions.order.capture().then(function (details) {
+                fetch("/capture-order", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    orderID: data.orderID,
+                    fecha: "<%= fecha %>",
+                    hora: "<%= hora %>",
+                    id_restaurante: "<%= id_restaurante %>",
+                    platosSeleccionados: "<%= JSON.stringify(platos) %>",
+                    total: "<%= total %>",
+                  }),
+                })
+                  .then((response) => response.json())
+                  .then((data) => {
+                    console.log("Respuesta del servidor:", data); // 🔥 Ver qué devuelve la API
+
+                    if (data.success) {
+                      alert(data.message);
+                      window.location.href = "/mis-pedidos";
+                    } else {
+                      alert("Error en el pago o la reserva. Intente de nuevo.");
+                    }
+                  })
+                  .catch((error) => {
+                    console.error("Error capturado:", error);
+                    alert("Error en el pago o la reserva. Intente de nuevo.");
+                  });
+              });
+            },
+            onError: function (err) {
+              console.error("PayPal Payment Error:", err);
+            },
+          })
+          .render("#paypal-button-container");
+      });
+    </script>
   </body>
 </html>
