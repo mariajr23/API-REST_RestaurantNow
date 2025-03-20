@@ -12,15 +12,6 @@ const { User } = require("../models/User");
 const paypal = require("@paypal/checkout-server-sdk");
 const paypalClient = require("./paypal");
 
-require("dotenv").config();
-// Configuración del entorno de PayPal en sandbox
-const environment = new paypal.core.SandboxEnvironment(
-  "PAYPAL_CLIENT_ID", // Reemplaza con tu Client ID de Sandbox
-  "PAYPAL_CLIENT_SECRET" // Reemplaza con tu Secret de Sandbox
-);
-
-//const client = new paypal.core.PayPalHttpClient(environment);
-
 router.get("/verificar-sesion", (req, res) => {
   if (req.session && req.session.user) {
     res.json({ mensaje: "Sesión activa", usuario: req.session.user });
@@ -955,16 +946,21 @@ router.post("/user/perfil", isAuthenticated, (req, res) => {
 });
 
 router.get("/user/mis-pedidos", isAuthenticated, (req, res) => {
-  const userId = req.user?.id_usuario || req.query.id_usuario;
+  const userId = req.session.user?.id;
+  console.log("Ejecutando consulta con id_usuario:", userId);
 
   const query = `
-    SELECT r.id_reserva, res.nombre AS nombre_restaurante, r.fecha, r.hora, r.estado, SUM(p.precio) AS precio_total
+    SELECT 
+        r.id_reserva, 
+        res.nombre AS nombre_restaurante, 
+        r.fecha, 
+        r.hora, 
+        r.estado, 
+        r.total AS precio_total
     FROM reservas r
     JOIN restaurantes res ON r.id_restaurante = res.id_restaurante
-    LEFT JOIN reservas dr ON r.id_reserva = dr.id_reserva
-    LEFT JOIN platos p ON dr.id_plato = p.id_plato
     WHERE r.id_usuario = ?
-    GROUP BY r.id_reserva, res.nombre, r.fecha, r.hora, r.estado
+    ORDER BY r.fecha DESC, r.hora ASC
   `;
 
   conexion.query(query, [userId], (error, results) => {
@@ -972,149 +968,206 @@ router.get("/user/mis-pedidos", isAuthenticated, (req, res) => {
       console.error("Error en la consulta:", error);
       return res.status(500).send("Error en el servidor");
     }
+    console.log(results); // Para verificar si las reservas contienen datos
 
     res.render("user/mis-pedidos", { reservas: results });
   });
 });
-
 router.get("/vistaRest", (req, res) => {
   const id_restaurante = req.query.id_restaurante;
   const fechaSeleccionada =
-    req.query.fecha || new Date().toISOString().split("T")[0];
+    req.query.fecha || new Date().toISOString().split("T")[0]; // Fecha actual en formato YYYY-MM-DD
 
-  console.log("ID Restaurante:", id_restaurante);
-  console.log("Fecha Seleccionada:", fechaSeleccionada);
+  const horaSeleccionada = req.query.hora ? req.query.hora : null;
 
   const restauranteQuery =
     "SELECT * FROM restaurantes WHERE id_restaurante = ?";
   const platosQuery =
     "SELECT * FROM platos WHERE id_restaurante = ? AND visible = TRUE";
   const horariosQuery = `
-    SELECT fh.franja_inicio, fh.disponibilidad
-    FROM franjas_horarias fh
-    JOIN horarios_restaurantes hr ON fh.id_horario = hr.id_horario
-    WHERE hr.id_restaurante = ?`;
+  SELECT fh.franja_inicio, fh.disponibilidad 
+  FROM franjas_horarias fh 
+  JOIN horarios_restaurantes hr ON fh.id_horario = hr.id_horario 
+  WHERE hr.id_restaurante = ? AND fh.fecha = ?
+  `;
 
   conexion.query(
-    restauranteQuery,
-    [id_restaurante],
-    (error, restauranteResults) => {
+    horariosQuery,
+    [id_restaurante, fechaSeleccionada],
+    (error, horariosResults) => {
       if (error) {
-        console.error("Error en la consulta de restaurantes:", error);
+        console.error("Error en la consulta de horarios:", error);
         return res.status(500).send("Error en la consulta");
       }
 
-      // Consulta de platos
-      conexion.query(platosQuery, [id_restaurante], (error, platosResults) => {
-        if (error) {
-          console.error("Error en la consulta de platos:", error);
-          return res.status(500).send("Error en la consulta");
-        }
+      if (horariosResults.length === 0) {
+        console.log("No hay franjas horarias para la fecha, generando...");
+        generarFranjas(id_restaurante, fechaSeleccionada, () => {
+          conexion.query(
+            restauranteQuery,
+            [id_restaurante],
+            (err, restauranteResult) => {
+              if (err) {
+                console.error("Error al obtener el restaurante:", err);
+                return res.status(500).send("Error al obtener el restaurante");
+              }
 
-        // Consulta de horarios
+              conexion.query(
+                platosQuery,
+                [id_restaurante],
+                (err, platosResults) => {
+                  if (err) {
+                    console.error("Error al obtener los platos:", err);
+                    return res.status(500).send("Error al obtener los platos");
+                  }
+
+                  res.render("vistaRest", {
+                    restaurant: restauranteResult[0],
+                    platos: platosResults,
+                    horarios: horariosResults,
+                    fecha: fechaSeleccionada,
+                    id_restaurante: id_restaurante,
+                  });
+                }
+              );
+            }
+          );
+        });
+      } else {
+        console.log("Franjas horarias encontradas, mostrando...");
         conexion.query(
-          horariosQuery,
+          restauranteQuery,
           [id_restaurante],
-          (error, horariosResults) => {
-            if (error) {
-              console.error("Error en la consulta de horarios:", error);
-              return res.status(500).send("Error en la consulta");
+          (err, restauranteResult) => {
+            if (err) {
+              console.error("Error al obtener el restaurante:", err);
+              return res.status(500).send("Error al obtener el restaurante");
             }
 
-            // Conversión de horarios a formato 12h
-            const horariosConvertidos = horariosResults.map((horario) => {
-              const [horaInicioH, horaInicioM] = horario.franja_inicio
-                .split(":")
-                .map(Number);
+            conexion.query(
+              platosQuery,
+              [id_restaurante],
+              (err, platosResults) => {
+                if (err) {
+                  console.error("Error al obtener los platos:", err);
+                  return res.status(500).send("Error al obtener los platos");
+                }
 
-              const horaInicio12h = `${horaInicioH % 12 || 12}:${horaInicioM
-                .toString()
-                .padStart(2, "0")} ${horaInicioH >= 12 ? "PM" : "AM"}`;
-
-              return {
-                ...horario,
-                franja_inicio: horaInicio12h,
-              };
-            });
-
-            // Renderizado de la vista con los datos obtenidos
-            res.render("vistaRest", {
-              id_restaurante: id_restaurante,
-              fecha: fechaSeleccionada,
-              platos: platosResults,
-              restaurants: restauranteResults,
-              horarios: horariosConvertidos,
-            });
+                res.render("vistaRest", {
+                  restaurant: restauranteResult[0],
+                  platos: platosResults,
+                  horarios: horariosResults,
+                  fecha: fechaSeleccionada,
+                  id_restaurante: id_restaurante,
+                });
+              }
+            );
           }
         );
-      });
+      }
     }
   );
 });
 
-function generarFranjas(intervaloMinutos = 15) {
-  const query = "SELECT * FROM horarios_restaurantes";
+router.post("/actualizarFecha", (req, res) => {
+  const { fecha, id_restaurante } = req.body; // Obtenemos la fecha e id del restaurante
 
-  conexion.query(query, (error, resultados) => {
+  console.log("Fecha recibida:", fecha);
+  console.log("ID Restaurante:", id_restaurante);
+
+  // Query para obtener los horarios disponibles para la fecha seleccionada
+  const horariosQuery = `
+    SELECT fh.franja_inicio, fh.disponibilidad 
+    FROM franjas_horarias fh 
+    JOIN horarios_restaurantes hr ON fh.id_horario = hr.id_horario 
+    WHERE hr.id_restaurante = ? AND fh.fecha = ?
+  `;
+
+  conexion.query(
+    horariosQuery,
+    [id_restaurante, fecha],
+    (error, horariosResults) => {
+      if (error) {
+        console.error("Error en la consulta de horarios:", error);
+        return res.status(500).send("Error en la consulta");
+      }
+
+      if (horariosResults.length === 0) {
+        console.log("No hay franjas horarias para la fecha, generando...");
+
+        // Si no existen franjas horarias, generamos los horarios
+        generarFranjas(id_restaurante, fecha, () => {
+          // Después de generar las franjas horarias, volvemos a consultar los horarios generados
+          conexion.query(
+            horariosQuery,
+            [id_restaurante, fecha],
+            (err, horariosResults) => {
+              if (err) {
+                console.error("Error al obtener los horarios generados:", err);
+                return res
+                  .status(500)
+                  .send("Error al obtener los horarios generados");
+              }
+
+              return res.json(horariosResults); // Devolvemos los horarios generados
+            }
+          );
+        });
+      } else {
+        console.log("Franjas horarias encontradas, enviando...");
+        return res.json(horariosResults); // Devolvemos los horarios encontrados
+      }
+    }
+  );
+});
+
+function generarFranjas(id_restaurante, fecha, callback) {
+  const query = "SELECT * FROM horarios_restaurantes WHERE id_restaurante = ?";
+
+  conexion.query(query, [id_restaurante], (error, resultados) => {
     if (error) {
       console.error("Error al obtener los horarios:", error);
-      return;
+      return callback();
     }
 
+    const intervaloMinutos = 15;
     resultados.forEach((horario) => {
-      const { id_horario, hora_inicio, hora_fin } = horario;
+      const { id_horario, hora_inicio, hora_fin, dias_semana } = horario;
 
       const horaInicio = new Date(`1970-01-01T${hora_inicio}Z`);
       const horaFin = new Date(`1970-01-01T${hora_fin}Z`);
 
-      const queryDelete = `
-        DELETE FROM franjas_horarias
-        WHERE id_horario = ?
-      `;
-      conexion.query(queryDelete, [id_horario], (err) => {
-        if (err) {
-          console.error("Error al eliminar franjas existentes:", err);
-          return;
-        }
+      const diaSemana = new Date(fecha).getDay();
+      const diasApertura = dias_semana.split(",").map(Number);
 
-        console.log(`Franjas eliminadas para el horario ${id_horario}.`);
+      if (!diasApertura.includes(diaSemana)) return;
 
-        let franjaInicio = horaInicio;
-        while (franjaInicio < horaFin) {
-          const franjaFin = new Date(
-            franjaInicio.getTime() + intervaloMinutos * 60000
-          );
+      let franjaInicio = new Date(horaInicio);
+      while (franjaInicio < horaFin) {
+        const franjaFin = new Date(
+          franjaInicio.getTime() + intervaloMinutos * 60000
+        );
 
-          const queryInsert = `
-            INSERT INTO franjas_horarias (id_horario, franja_inicio, franja_fin, disponibilidad)
-            VALUES (?, ?, ?, 1)
-          `;
-          conexion.query(
-            queryInsert,
-            [
-              id_horario,
-              franjaInicio.toISOString().substring(11, 16),
-              franjaFin.toISOString().substring(11, 16),
-            ],
-            (err, result) => {
-              if (err) {
-                console.error("Error al insertar la franja horaria:", err);
-              } else {
-                console.log(
-                  `Franja horaria insertada: ${franjaInicio
-                    .toISOString()
-                    .substring(11, 16)} - ${franjaFin
-                    .toISOString()
-                    .substring(11, 16)}`
-                );
-              }
-            }
-          );
+        const queryInsert = `INSERT INTO franjas_horarias (id_horario, franja_inicio, franja_fin, fecha, disponibilidad) 
+                             VALUES (?, ?, ?, ?, 1)`;
 
-          franjaInicio = franjaFin;
-        }
-      });
+        conexion.query(
+          queryInsert,
+          [
+            id_horario,
+            franjaInicio.toISOString().substring(11, 16),
+            franjaFin.toISOString().substring(11, 16),
+            fecha,
+          ],
+          (err) => {
+            if (err) console.error("Error al insertar la franja horaria:", err);
+          }
+        );
+
+        franjaInicio = franjaFin;
+      }
     });
+    callback();
   });
 }
 
@@ -1137,6 +1190,8 @@ router.get("/resumenReserva", (req, res) => {
 router.post("/reservar", isAuthenticated, (req, res) => {
   const { fecha, hora, id_restaurante, platosSeleccionados } = req.body;
   console.log(req.body);
+  console.log("Fecha recibida:", fecha);
+  console.log("Hora recibida:", hora);
 
   if (!hora) {
     return res.status(400).send("La hora es obligatoria.");
@@ -1192,7 +1247,6 @@ router.post("/reservar", isAuthenticated, (req, res) => {
         return res.status(400).send("Horario no disponible");
       }
 
-      // Antes de calcular el total, obtenemos el nombre del restaurante.
       const queryRestaurante = `
         SELECT nombre 
         FROM restaurantes
@@ -1216,10 +1270,8 @@ router.post("/reservar", isAuthenticated, (req, res) => {
             return res.status(404).send("Restaurante no encontrado");
           }
 
-          // Obtenemos el nombre del restaurante
           const nombreRestaurante = resultsRest[0].nombre;
 
-          // Llamamos a calcularPrecioTotal que obtiene el nombre de cada plato, precio y realiza el cálculo total
           calcularPrecioTotal(
             platosArray,
             (errCalc, platosConNombre, total) => {
@@ -1236,6 +1288,8 @@ router.post("/reservar", isAuthenticated, (req, res) => {
                 restaurant: nombreRestaurante,
                 platos: platosConNombre,
                 total: total,
+                hora24: hora24, // Incluir hora24 aquí
+                fechaFormateada: fechaFormateada,
               });
             }
           );
@@ -1276,7 +1330,16 @@ function calcularPrecioTotal(platosArray, callback) {
   });
 }
 router.post("/capture-order", async (req, res) => {
-  const { orderID, fecha, hora, platos, total, id_restaurante } = req.body;
+  const {
+    orderID,
+    fecha,
+    hora,
+    platos,
+    total,
+    id_restaurante,
+    hora24,
+    fechaFormateada,
+  } = req.body;
   const userId = req.session.user.id;
 
   const request = new paypal.orders.OrdersCaptureRequest(orderID);
@@ -1288,7 +1351,7 @@ router.post("/capture-order", async (req, res) => {
     if (response.result.status === "COMPLETED") {
       const reserva = {
         id_usuario: userId,
-        id_restaurante: id_restaurante, // Corregido
+        id_restaurante: id_restaurante, // Usar id_restaurante directamente
         fecha: fecha,
         hora: hora,
         estado: "pendiente", // La reserva queda pendiente hasta confirmación
@@ -1298,6 +1361,26 @@ router.post("/capture-order", async (req, res) => {
 
       // CORRECCIÓN: Ejecutar la consulta sin desestructurar el resultado
       await conexion.query("INSERT INTO reservas SET ?", reserva);
+      const actualizarDisponibilidadQuery = `
+        UPDATE franjas_horarias 
+        SET disponibilidad = 0 
+        WHERE id_horario = (
+          SELECT id_horario FROM horarios_restaurantes 
+          WHERE id_restaurante = ? 
+        ) AND franja_inicio = ? AND fecha = ?;
+      `;
+
+      conexion.query(
+        actualizarDisponibilidadQuery,
+        [id_restaurante, hora24, fechaFormateada], // Usar hora24 y fechaFormateada
+        (errUpdate) => {
+          if (errUpdate) {
+            console.error("Error al actualizar la disponibilidad:", errUpdate);
+            return res.status(500).send("Error al actualizar disponibilidad");
+          }
+          console.log("Disponibilidad actualizada correctamente");
+        }
+      );
 
       return res.json({
         success: true,
@@ -1313,113 +1396,6 @@ router.post("/capture-order", async (req, res) => {
     res.status(500).json({ message: "Error interno en el servidor" });
   }
 });
-
-/*
-router.post("/capture-order", async (req, res) => {
-  const { orderID, userId, restaurantId, fecha, hora, platos, total } =
-    req.body;
-
-  const request = new paypal.orders.OrdersCaptureRequest(orderID);
-  request.requestBody({});
-
-  try {
-    const response = await paypalClient.execute(request);
-
-    if (response.result.status === "COMPLETED") {
-      // Guardar la reserva con el estado "pendiente"
-      const reserva = {
-        id_usuario: userId,
-        id_restaurante: restaurantId,
-        fecha: fecha,
-        hora: hora,
-        estado: "pendiente", // La reserva está pendiente hasta que el restaurante la confirme
-        total: total,
-        id_pago: orderID, // Guardamos el ID del pago
-      };
-
-      // Inserta la reserva con el id_pago y estado pendiente
-      const [result] = await conexion.query(
-        "INSERT INTO reservas SET ?",
-        reserva
-      );
-
-      res.json({
-        message:
-          "Pago realizado con éxito. Reserva pendiente de confirmación del restaurante.",
-        details: response.result,
-      });
-    } else {
-      res.status(400).json({ message: "Error en el pago" });
-    }
-  } catch (error) {
-    console.error("Error al capturar el pago:", error);
-    res.status(500).json({ message: "Error interno" });
-  }
-});*/
-
-/*
-router.post("/realizarPago", isAuthenticated, async (req, res) => {
-  const { fecha, hora, id_restaurante, platosSeleccionados, orderID } =
-    req.body;
-  const totalFormateado = parseFloat(total).toFixed(2);
-
-  try {
-    const request = new paypal.orders.OrdersCaptureRequest(orderID);
-    request.requestBody({
-      purchase_units: [
-        {
-          amount: {
-            currency_code: "USD",
-            value: totalFormateado,
-          },
-        },
-      ],
-    });
-    const response = await paypalClient.execute(request);
-
-    if (response.result.status !== "COMPLETED") {
-      return res.status(400).json({ message: "Pago no completado" });
-    }
-
-    const id_usuario = req.session.user.id;
-    const id_pago = response.result.id;
-
-    // Insertar reserva
-    const reservaQuery = `INSERT INTO reservas (id_usuario, id_restaurante, fecha, hora, estado, id_pago) VALUES (?, ?, ?, ?, 'confirmada', ?)`;
-    conexion.query(
-      reservaQuery,
-      [id_usuario, id_restaurante, fecha, hora, id_pago],
-      (error, result) => {
-        if (error) {
-          console.error("Error al insertar la reserva:", error);
-          return res.status(500).send("Error al guardar la reserva");
-        }
-
-        // Insertar los platos seleccionados
-        platosSeleccionados.forEach(({ id_plato, cantidad }) => {
-          const detallesReservaQuery = `INSERT INTO reserva_platos (id_reserva, id_plato, cantidad) VALUES (?, ?, ?)`;
-          conexion.query(
-            detallesReservaQuery,
-            [result.insertId, id_plato, cantidad],
-            (error) => {
-              if (error) {
-                console.error(
-                  "Error al insertar el detalle de la reserva:",
-                  error
-                );
-              }
-            }
-          );
-        });
-
-        res.json({ message: "Pago exitoso y reserva confirmada" });
-      }
-    );
-  } catch (error) {
-    console.error("Error al verificar el pago:", error);
-    res.status(500).json({ message: "Error interno al procesar el pago" });
-  }
-});*/
 
 router.get("/logout", (req, res) => {
   res.clearCookie("token");

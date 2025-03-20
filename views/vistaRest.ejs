@@ -1,12 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
   <head>
-    <link
-      href="/node_modules/bootstrap/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-    />
-
-    <script src="/node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <meta charset="utf-8" />
     <meta
       name="viewport"
@@ -14,13 +8,18 @@
     />
     <meta http-equiv="content-type" content="text/html; charset=utf-8" />
 
+    <!-- Bootstrap -->
+    <link
+      href="/node_modules/bootstrap/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <script src="/node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+
     <!-- Favicons -->
     <link href="assets/img/favicon.png" rel="icon" />
     <link href="assets/img/apple-touch-icon.png" rel="apple-touch-icon" />
 
     <!-- Fonts -->
-    <link href="https://fonts.googleapis.com" rel="preconnect" />
-    <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&family=Inter:wght@100;200;300;400;500;600;700;800;900&family=Amatic+SC:wght@400;700&display=swap"
       rel="stylesheet"
@@ -46,23 +45,19 @@
     <link href="assets/css/main.css" rel="stylesheet" />
     <link href="assets/css/estilos.css" rel="stylesheet" />
   </head>
+
   <body class="index-page">
     <header id="header" class="header d-flex align-items-center sticky-top">
       <div
         class="container position-relative d-flex align-items-center justify-content-between"
       >
         <a href="/" class="logo d-flex align-items-center me-auto me-xl-0">
-          <!-- <img src="assets/img/logo.png" alt=""> -->
           <h1 class="sitename">RestaurantNow</h1>
-          <span>.</span>
         </a>
         <nav id="navmenu" class="navmenu">
           <ul class="nav nav-pills">
             <li class="nav-item">
-              <a
-                href="/restaurantes"
-                class="nav-link text-dark"
-                aria-current="page"
+              <a href="/restaurantes" class="nav-link text-dark"
                 >Restaurantes</a
               >
             </li>
@@ -88,33 +83,31 @@
             <% } %>
           </ul>
         </nav>
-
         <a class="btn-getstarted" href="/restaurantes">Reservar</a>
       </div>
     </header>
 
     <main class="container">
       <!-- Información del restaurante -->
-      <section>
-        <% restaurants.forEach((restaurant) => { %>
-        <div
-          class="p-5 text-center bg-image rounded-3"
-          style="
-            background-image: url('https://mdbcdn.b-cdn.net/img/new/slides/041.webp');
-            height: 25%;
-          "
-        >
-          <div class="mask" style="background-color: rgba(0, 0, 0, 0.6)">
-            <div class="d-flex justify-content-center align-items-center h-100">
-              <div class="text-white">
-                <h1 class="mb-3"><%= restaurant.nombre %></h1>
-                <h4 class="mb-3"><%= restaurant.descripcion %></h4>
-              </div>
+      <% if (restaurant) { %>
+      <div
+        class="p-5 text-center bg-image rounded-3"
+        style="
+          background-image: url('https://mdbcdn.b-cdn.net/img/new/slides/041.webp');
+          height: 25%;
+        "
+      >
+        <div class="mask" style="background-color: rgba(0, 0, 0, 0.6)">
+          <div class="d-flex justify-content-center align-items-center h-100">
+            <div class="text-white">
+              <h1 class="mb-3"><%= restaurant.nombre %></h1>
+              <h4 class="mb-3"><%= restaurant.descripcion %></h4>
             </div>
           </div>
         </div>
-        <% }) %>
-      </section>
+      </div>
+      <% } %>
+
       <!-- Platos disponibles -->
       <section class="container">
         <h2>Platos Disponibles</h2>
@@ -125,7 +118,6 @@
             value="<%= id_restaurante %>"
           />
 
-          <!-- Barra de búsqueda -->
           <div class="mb-3">
             <input
               id="searchInput"
@@ -140,8 +132,7 @@
             <div class="card card-plato">
               <div class="card-body">
                 <h5 class="card-title"><%= plato.nombre %></h5>
-                <p class="card-text">Precio: $<%= plato.precio.toFixed(2) %></p>
-
+                <p class="card-text">Precio: €<%= plato.precio.toFixed(2) %></p>
                 <label for="plato_<%= plato.id_plato %>">Cantidad:</label>
                 <input
                   class="form-control"
@@ -157,10 +148,8 @@
             <% }) %>
           </div>
 
-          <!-- Precio final -->
-          <div id="precio-final" class="mt-3">Precio Final: $0.00</div>
+          <div id="precio-final" class="mt-3">Precio Final: 0.00€</div>
 
-          <!-- Selección de Fecha y Hora -->
           <div class="custom-card">
             <h3>Selecciona la Fecha y Hora</h3>
             <div>
@@ -176,23 +165,19 @@
 
             <div>
               <h4>Hora de Reserva:</h4>
-              <div>
+              <select id="hora" name="hora" required>
+                <option value="">Selecciona una hora</option>
                 <% horarios.forEach((horario) => { %> <% if
                 (horario.disponibilidad === 1) { %>
-                <button
-                  type="submit"
-                  name="hora"
-                  value="<%= horario.franja_inicio %>"
-                  class="btn btn-success"
-                >
+                <option value="<%= horario.franja_inicio %>">
                   <%= horario.franja_inicio %>
-                </button>
+                </option>
                 <% } else { %>
-                <button class="btn btn-secondary" disabled>
-                  <%= horario.franja_inicio %>
-                </button>
-                <% } %> <% }); %>
-              </div>
+                <option value="<%= horario.franja_inicio %>" disabled>
+                  <%= horario.franja_inicio %> - Reservado
+                </option>
+                <% } %> <% }) %>
+              </select>
             </div>
           </div>
 
@@ -200,7 +185,6 @@
         </form>
       </section>
     </main>
-    <script src="/node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
       document.addEventListener("DOMContentLoaded", function () {
@@ -215,7 +199,6 @@
         searchInput.addEventListener("input", function () {
           const query = searchInput.value.toLowerCase();
           const platos = platosList.getElementsByClassName("card");
-
           for (let plato of platos) {
             const text = plato
               .querySelector(".card-title")
@@ -228,133 +211,69 @@
         cantidadInputs.forEach(function (input) {
           input.addEventListener("input", function () {
             let precioTotal = 0;
-
             cantidadInputs.forEach(function (input) {
-              const cantidad = parseInt(input.value) || 0; // Asegurarse de que sea un número entero
+              const cantidad = parseInt(input.value) || 0;
               const precioPlato = parseFloat(
                 input
                   .closest(".card")
                   .querySelector(".card-text")
-                  .textContent.split("Precio: $")[1]
+                  .textContent.split("Precio: €")[1]
               );
-
-              precioTotal += cantidad * precioPlato; // Multiplicar cantidad por el precio
+              precioTotal += cantidad * precioPlato;
             });
-
-            // Actualizar el precio final en la vista
             document.getElementById(
               "precio-final"
-            ).textContent = `Precio Final: $${precioTotal.toFixed(2)}`;
+            ).textContent = `Precio Final: €${precioTotal.toFixed(2)}`;
           });
-        });
-
-        // Cambiar horarios según fecha
-        const fechaInput = document.getElementById("fecha");
-        const horaSelect = document.getElementById("hora");
-
-        fechaInput.addEventListener("change", function () {
-          const fecha = fechaInput.value;
-          const idRestaurante = "<%= id_restaurante %>";
-
-          fetch(
-            `/horariosDisponibles?fecha=${fecha}&id_restaurante=${idRestaurante}`
-          )
-            .then((response) => response.json())
-            .then((horarios) => {
-              horaSelect.innerHTML = "";
-              horarios.forEach((horario) => {
-                const option = document.createElement("option");
-                option.value = horario.hora;
-                option.textContent = `${horario.hora} - ${
-                  horario.reservado === 1 ? "Reservado" : "Disponible"
-                }`;
-                if (horario.reservado === 1) {
-                  option.disabled = true;
-                }
-                horaSelect.appendChild(option);
-              });
-            });
         });
 
         // Verificar que el valor de la hora está correctamente configurado antes de enviar
         form.addEventListener("submit", function (event) {
-          if (!horaSelect.value) {
+          if (!document.getElementById("hora").value) {
             event.preventDefault();
             alert("Por favor, selecciona una hora.");
           }
         });
       });
-      const fechaInput = document.getElementById("fecha");
-      const horaSelect = document.getElementById("hora");
-      const searchInput = document.getElementById("searchInput");
-      const platosList = document.getElementById("platosList");
-      const checkboxes = document.querySelectorAll(".form-check-input");
-      const form = document.querySelector("form");
+      document.addEventListener("DOMContentLoaded", function () {
+        const fechaInput = document.getElementById("fecha");
+        const horaSelect = document.getElementById("hora");
 
-      // Filtrado de platos
-      searchInput.addEventListener("input", function () {
-        const query = searchInput.value.toLowerCase();
-        const platos = platosList.getElementsByClassName("card");
+        // Cambiar horarios según fecha
+        fechaInput.addEventListener("change", function () {
+          const fecha = fechaInput.value; // Obtenemos la fecha seleccionada
+          const idRestaurante = "<%= id_restaurante %>"; // El id del restaurante
 
-        for (let plato of platos) {
-          const text = plato
-            .querySelector(".card-title")
-            .textContent.toLowerCase();
-          plato.style.display = text.includes(query) ? "" : "none";
-        }
-      });
-
-      checkboxes.forEach(function (checkbox) {
-        checkbox.addEventListener("change", function () {
-          let precioTotal = 0;
-          checkboxes.forEach(function (checkbox) {
-            if (checkbox.checked) {
-              const precio = parseFloat(
-                checkbox
-                  .closest(".card")
-                  .querySelector(".card-text")
-                  .textContent.split("Precio: $")[1]
-              );
-              precioTotal += precio;
-            }
-          });
-          document.getElementById(
-            "precio-final"
-          ).textContent = `Precio Final: $${precioTotal.toFixed(2)}`;
+          // Hacer un POST para enviar la fecha seleccionada
+          fetch("/actualizarFecha", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              fecha: fechaSeleccionada,
+              id_restaurante: idRestaurante,
+            }),
+          })
+            .then((response) => response.json())
+            .then((data) => {
+              const horaSelect = document.getElementById("hora");
+              horaSelect.innerHTML =
+                "<option value=''>Selecciona una hora</option>";
+              data.forEach((horario) => {
+                const option = document.createElement("option");
+                option.value = horario.franja_inicio;
+                option.textContent = horario.disponibilidad
+                  ? `${horario.franja_inicio}`
+                  : `${horario.franja_inicio} - Reservado`;
+                option.disabled = !horario.disponibilidad;
+                horaSelect.appendChild(option);
+              });
+            })
+            .catch((error) =>
+              console.error("Error al actualizar horarios:", error)
+            );
         });
-      });
-
-      // Cambiar horarios según fecha
-      fechaInput.addEventListener("change", function () {
-        const fecha = fechaInput.value;
-        const idRestaurante = "<%= id_restaurante %>";
-
-        fetch(
-          `/horariosDisponibles?fecha=${fecha}&id_restaurante=${idRestaurante}`
-        )
-          .then((response) => response.json())
-          .then((horarios) => {
-            horaSelect.innerHTML = "";
-            horarios.forEach((horario) => {
-              const option = document.createElement("option");
-              option.value = horario.hora;
-              option.textContent = `${horario.hora} - ${
-                horario.reservado === 1 ? "Reservado" : "Disponible"
-              }`;
-              if (horario.reservado === 1) {
-                option.disabled = true;
-              }
-              horaSelect.appendChild(option);
-            });
-          });
-      });
-
-      // Verificar que el valor de la hora está correctamente configurado antes de enviar
-      form.addEventListener("submit", function (event) {
-        if (!horaSelect.value) {
-          event.preventDefault();
-          alert("Por favor, selecciona una hora.");
-        }
       });
     </script>
   </body>
