@@ -114,7 +114,7 @@
               <td><%= reserva.fecha %></td>
               <td><%= reserva.hora %></td>
               <td><%= reserva.estado %></td>
-              <td>$<%= reserva.precio_total.toFixed(2) %></td>
+              <td>$<%= (reserva.precio_total || 0).toFixed(2) %></td>
             </tr>
             <% }); %> <% } else { %>
             <tr>

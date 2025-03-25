@@ -176,23 +176,11 @@
 
             <div>
               <h4>Hora de Reserva:</h4>
-              <div>
-                <% horarios.forEach((horario) => { %> <% if
-                (horario.disponibilidad === 1) { %>
-                <button
-                  type="submit"
-                  name="hora"
-                  value="<%= horario.franja_inicio %>"
-                  class="btn btn-success"
-                >
-                  <%= horario.franja_inicio %>
-                </button>
-                <% } else { %>
-                <button class="btn btn-secondary" disabled>
-                  <%= horario.franja_inicio %>
-                </button>
-                <% } %> <% }); %>
-              </div>
+              <select name="hora">
+                <% horarios.forEach(hora => { %>
+                <option value="<%= hora %>"><%= hora %></option>
+                <% }) %>
+              </select>
             </div>
           </div>
 
@@ -200,8 +188,6 @@
         </form>
       </section>
     </main>
-    <script src="/node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-
     <script>
       document.addEventListener("DOMContentLoaded", function () {
         const searchInput = document.getElementById("searchInput");
@@ -215,7 +201,6 @@
         searchInput.addEventListener("input", function () {
           const query = searchInput.value.toLowerCase();
           const platos = platosList.getElementsByClassName("card");
-
           for (let plato of platos) {
             const text = plato
               .querySelector(".card-title")
@@ -228,133 +213,60 @@
         cantidadInputs.forEach(function (input) {
           input.addEventListener("input", function () {
             let precioTotal = 0;
-
             cantidadInputs.forEach(function (input) {
-              const cantidad = parseInt(input.value) || 0; // Asegurarse de que sea un número entero
+              const cantidad = parseInt(input.value) || 0;
               const precioPlato = parseFloat(
                 input
                   .closest(".card")
                   .querySelector(".card-text")
-                  .textContent.split("Precio: $")[1]
+                  .textContent.split("Precio: €")[1]
               );
-
-              precioTotal += cantidad * precioPlato; // Multiplicar cantidad por el precio
+              precioTotal += cantidad * precioPlato;
             });
-
-            // Actualizar el precio final en la vista
             document.getElementById(
               "precio-final"
-            ).textContent = `Precio Final: $${precioTotal.toFixed(2)}`;
+            ).textContent = `Precio Final: €${precioTotal.toFixed(2)}`;
           });
-        });
-
-        // Cambiar horarios según fecha
-        const fechaInput = document.getElementById("fecha");
-        const horaSelect = document.getElementById("hora");
-
-        fechaInput.addEventListener("change", function () {
-          const fecha = fechaInput.value;
-          const idRestaurante = "<%= id_restaurante %>";
-
-          fetch(
-            `/horariosDisponibles?fecha=${fecha}&id_restaurante=${idRestaurante}`
-          )
-            .then((response) => response.json())
-            .then((horarios) => {
-              horaSelect.innerHTML = "";
-              horarios.forEach((horario) => {
-                const option = document.createElement("option");
-                option.value = horario.hora;
-                option.textContent = `${horario.hora} - ${
-                  horario.reservado === 1 ? "Reservado" : "Disponible"
-                }`;
-                if (horario.reservado === 1) {
-                  option.disabled = true;
-                }
-                horaSelect.appendChild(option);
-              });
-            });
         });
 
         // Verificar que el valor de la hora está correctamente configurado antes de enviar
         form.addEventListener("submit", function (event) {
-          if (!horaSelect.value) {
+          if (!document.getElementById("hora").value) {
             event.preventDefault();
             alert("Por favor, selecciona una hora.");
           }
         });
       });
-      const fechaInput = document.getElementById("fecha");
-      const horaSelect = document.getElementById("hora");
-      const searchInput = document.getElementById("searchInput");
-      const platosList = document.getElementById("platosList");
-      const checkboxes = document.querySelectorAll(".form-check-input");
-      const form = document.querySelector("form");
+      document.addEventListener("DOMContentLoaded", function () {
+        const fechaInput = document.getElementById("fecha");
+        const horaSelect = document.querySelector("select[name='hora']");
 
-      // Filtrado de platos
-      searchInput.addEventListener("input", function () {
-        const query = searchInput.value.toLowerCase();
-        const platos = platosList.getElementsByClassName("card");
+        fechaInput.addEventListener("change", function () {
+          const fecha = fechaInput.value;
+          const idRestaurante = "<%= id_restaurante %>";
 
-        for (let plato of platos) {
-          const text = plato
-            .querySelector(".card-title")
-            .textContent.toLowerCase();
-          plato.style.display = text.includes(query) ? "" : "none";
-        }
-      });
-
-      checkboxes.forEach(function (checkbox) {
-        checkbox.addEventListener("change", function () {
-          let precioTotal = 0;
-          checkboxes.forEach(function (checkbox) {
-            if (checkbox.checked) {
-              const precio = parseFloat(
-                checkbox
-                  .closest(".card")
-                  .querySelector(".card-text")
-                  .textContent.split("Precio: $")[1]
-              );
-              precioTotal += precio;
-            }
-          });
-          document.getElementById(
-            "precio-final"
-          ).textContent = `Precio Final: $${precioTotal.toFixed(2)}`;
+          fetch(`/vistaRest?id_restaurante=${idRestaurante}&fecha=${fecha}`, {
+            headers: { Accept: "application/json" },
+          })
+            .then((response) => {
+              if (!response.ok)
+                throw new Error("Error en la respuesta del servidor");
+              return response.json();
+            })
+            .then((data) => {
+              horaSelect.innerHTML =
+                "<option value=''>Selecciona una hora</option>";
+              data.horarios.forEach((horario) => {
+                const option = document.createElement("option");
+                option.value = horario;
+                option.textContent = horario;
+                horaSelect.appendChild(option);
+              });
+            })
+            .catch((error) =>
+              console.error("Error al actualizar horarios:", error)
+            );
         });
-      });
-
-      // Cambiar horarios según fecha
-      fechaInput.addEventListener("change", function () {
-        const fecha = fechaInput.value;
-        const idRestaurante = "<%= id_restaurante %>";
-
-        fetch(
-          `/horariosDisponibles?fecha=${fecha}&id_restaurante=${idRestaurante}`
-        )
-          .then((response) => response.json())
-          .then((horarios) => {
-            horaSelect.innerHTML = "";
-            horarios.forEach((horario) => {
-              const option = document.createElement("option");
-              option.value = horario.hora;
-              option.textContent = `${horario.hora} - ${
-                horario.reservado === 1 ? "Reservado" : "Disponible"
-              }`;
-              if (horario.reservado === 1) {
-                option.disabled = true;
-              }
-              horaSelect.appendChild(option);
-            });
-          });
-      });
-
-      // Verificar que el valor de la hora está correctamente configurado antes de enviar
-      form.addEventListener("submit", function (event) {
-        if (!horaSelect.value) {
-          event.preventDefault();
-          alert("Por favor, selecciona una hora.");
-        }
       });
     </script>
   </body>

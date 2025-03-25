@@ -40,7 +40,7 @@
                 purchase_units: [
                   {
                     amount: {
-                      value: "<%= total %>", // Precio total
+                      value: "<%= total %>",
                     },
                   },
                 ],
@@ -56,8 +56,7 @@
                     fecha: "<%= fecha %>",
                     hora: "<%= hora %>",
                     id_restaurante: "<%= id_restaurante %>",
-                    platosSeleccionados: "<%= JSON.stringify(platos) %>",
-                    total: "<%= total %>",
+                    total: "<%= total %>", // Solo se envía el total y los datos necesarios
                   }),
                 })
                   .then((response) => response.json())
@@ -66,7 +65,7 @@
 
                     if (data.success) {
                       alert(data.message);
-                      window.location.href = "/mis-pedidos";
+                      window.location.href = "/user/mis-pedidos";
                     } else {
                       alert("Error en el pago o la reserva. Intente de nuevo.");
                     }
