@@ -17,7 +17,7 @@
       <ul>
         <% if (platos && platos.length > 0) { %> <% platos.forEach(plato => { %>
         <li>
-          <%= plato.cantidad %> x <%= plato.nombre %> - Precio: $<%=
+          <%= plato.cantidad %> x <%= plato.nombre %> - Precio: €<%=
           plato.precio %>
         </li>
         <% }) %> <% } else { %>
@@ -25,7 +25,7 @@
         <% } %>
       </ul>
 
-      <h4>Precio Total: $<%= total %></h4>
+      <h4>Precio Total: €<%= total %></h4>
 
       <script src="https://www.paypal.com/sdk/js?client-id=<%=paypalClientId%>&currency=USD"></script>
 

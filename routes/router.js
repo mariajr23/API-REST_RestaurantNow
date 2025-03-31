@@ -137,7 +137,6 @@ async function generarHorariosMensuales() {
         });
       }
 
-      // Insertar en la base de datos solo si hay horarios generados
       if (horariosInsertar.length > 0) {
         await new Promise((resolve, reject) => {
           conexion.query(
@@ -263,7 +262,7 @@ router.post("/registrar/cliente", async (req, res) => {
 
   try {
     const hashedPassword = await bcrypt.hash(contrasena, 10);
-    const query = `INSERT INTO usuarios (nombre, email, contrasena, telefono, rol) 
+    const query = `INSERT INTO usuarios (nombre, apellido, email, contrasena, telefono, rol) 
                    VALUES (?, ?, ?, ?, 'usuario')`;
 
     conexion.query(
@@ -455,7 +454,7 @@ router.get("/restaurante/reservas", isAuthenticated, (req, res) => {
   JOIN usuarios u ON r.id_usuario = u.id_usuario
   LEFT JOIN reserva_platos rp ON r.id_reserva = rp.id_reserva
   LEFT JOIN platos p ON rp.id_plato = p.id_plato
-  WHERE r.id_restaurante = ?
+  WHERE r.id_restaurante = ? AND r.id_pago IS NOT NULL
   GROUP BY r.id_reserva
   ORDER BY r.fecha ASC, r.hora ASC`,
         [restauranteId],
@@ -1019,16 +1018,34 @@ router.post("/admin/adminUser/eliminarUsuario/:id", (req, res) => {
 });
 
 router.get("/user/perfil", isAuthenticated, (req, res) => {
-  res.render("user/perfil", {
-    user: req.user,
-    message: null,
+  const userId = req.session.user?.id;
+  console.log("Ejecutando consulta con id_usuario:", userId);
+
+  const query = `
+    SELECT 
+        *
+    FROM usuarios
+    WHERE id_usuario = ?
+  `;
+
+  // Asegúrate de usar query() y no execute()
+  conexion.query(query, [userId], (error, results) => {
+    if (error) {
+      console.error("Error en la consulta:", error);
+      return res.status(500).send("Error en el servidor");
+    }
+    console.log(results);
+
+    res.render("user/perfil", { user: results[0], message: null });
   });
 });
 
 router.post("/user/perfil", isAuthenticated, (req, res) => {
   const { nombre, apellido, telefono, contrasena, confirmar_contrasena } =
     req.body;
-  const userId = req.user.id_usuario;
+  const userId = req.session.user?.id;
+  console.log("Datos recibidos:", req.body);
+  console.log("ID del usuario:", userId);
 
   if (contrasena && contrasena !== confirmar_contrasena) {
     return res.render("user/perfil", {
