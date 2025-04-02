@@ -51,7 +51,7 @@
         class="container position-relative d-flex align-items-center justify-content-between"
       >
         <a href="/" class="logo d-flex align-items-center me-auto me-xl-0">
-          <!-- <img src="assets/img/logo.png" alt=""> -->
+          <img src="assets/img/logo.png" alt="" />
           <h1 class="sitename">RestaurantNow</h1>
           <span>.</span>
         </a>
@@ -131,7 +131,16 @@
             action="/iniciarsesion-usuario"
             method="POST"
           >
-            <img class="footer-logo" src="/images/Logo.png" alt="Logo" />
+            <div
+              style="
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: auto;
+              "
+            >
+              <img class="mb-4" src="assets/img/Logo.png" alt="logo" />
+            </div>
             <h1 class="h3 mb-3 fw-normal">Iniciar sesión como Usuario</h1>
             <div class="form-floating">
               <label for="floatingInput">Email</label>
@@ -176,7 +185,17 @@
             action="/iniciarsesion-restaurante"
             method="POST"
           >
-            <img class="footer-logo" src="/images/Logo.png" alt="Logo" />
+            <div
+              style="
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: auto;
+              "
+            >
+              <img class="mb-4" src="assets/img/Logo.png" alt="logo" />
+            </div>
+
             <h1 class="h3 mb-3 fw-normal">Iniciar sesión como Restaurante</h1>
             <div class="form-floating">
               <label for="floatingInputRestaurante">Email</label>
@@ -216,7 +235,13 @@
           href="/"
           class="mb-3 me-2 mb-md-0 text-muted text-decoration-none lh-1"
         >
-          <img class="footer-logo" src="/images/Logo.jpg" alt="Logo" />
+          <img
+            class="mb-4"
+            src="assets/img/Logo.png"
+            alt="Logo"
+            width="50%"
+            height="50%"
+          />
         </a>
         <span class="footer-text">&copy; 2023 RestaurantNow</span>
       </div>
@@ -227,8 +252,6 @@
     <script src="assets/vendor/aos/aos.js"></script>
     <script src="assets/vendor/glightbox/js/glightbox.min.js"></script>
     <script src="assets/vendor/purecounter/purecounter_vanilla.js"></script>
-    <script src="assets/vendor/swiper/swiper-bundle.min.js"></script>
-    <script src="assets/js/main.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.0/js/bootstrap.min.js"></script>
   </body>

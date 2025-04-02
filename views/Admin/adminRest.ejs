@@ -121,6 +121,7 @@
               <th>Email</th>
               <th>Teléfono</th>
               <th>Dirección</th>
+              <th>Acciones</th>
             </tr>
           </thead>
           <tbody>
@@ -132,12 +133,21 @@
               <td><%= restaurante.email %></td>
               <td><%= restaurante.telefono %></td>
               <td><%= restaurante.direccion %></td>
+              <td>
+                <form
+                  action="/admin/adminRest/eliminarRestaurante/<%= restaurante.id_restaurante %>"
+                  method="POST"
+                  style="display: inline"
+                >
+                  <button type="submit" class="btn btn-danger btn-sm">
+                    Eliminar
+                  </button>
+                </form>
+              </td>
             </tr>
             <% }) %> <% } else { %>
             <tr>
-              <td colspan="5" class="text-center">
-                No hay restaurantes aceptados.
-              </td>
+              <td colspan="6" class="text-center">No hay restaurantes.</td>
             </tr>
             <% } %>
           </tbody>

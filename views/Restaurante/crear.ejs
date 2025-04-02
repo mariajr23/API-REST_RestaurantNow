@@ -55,13 +55,16 @@
 
     <main class="login">
       <form class="form-signin" action="/restaurante/crear" method="POST">
-        <img
-          class="mb-4"
-          src="/images/logo.png"
-          alt="logo"
-          width="80"
-          height="auto"
-        />
+        <div
+          style="
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 200px;
+          "
+        >
+          <img src="assets/img/Logo.png" alt="Logo" />
+        </div>
         <h1 class="h3 mb-3 fw-normal">Crear tu Restaurante</h1>
 
         <div class="form-group mb-3">
@@ -113,6 +116,52 @@
           />
         </div>
 
+        <div class="form-group mb-3">
+          <label for="diasSemana">Días de la semana</label>
+          <input
+            type="text"
+            class="form-control"
+            id="diasSemana"
+            name="dias_semana"
+            placeholder="Ej: Lunes-Viernes"
+            required
+          />
+        </div>
+
+        <div class="form-group mb-3">
+          <label for="horaInicio">Hora de Apertura</label>
+          <input
+            type="time"
+            class="form-control"
+            id="horaInicio"
+            name="hora_inicio"
+            required
+          />
+        </div>
+
+        <div class="form-group mb-3">
+          <label for="horaFin">Hora de Cierre</label>
+          <input
+            type="time"
+            class="form-control"
+            id="horaFin"
+            name="hora_fin"
+            required
+          />
+        </div>
+
+        <div class="form-group mb-3">
+          <label for="intervalo">Intervalo de Reservas (minutos)</label>
+          <input
+            type="number"
+            class="form-control"
+            id="intervalo"
+            name="intervalo"
+            placeholder="Ej: 30"
+            required
+          />
+        </div>
+
         <button class="btn btn-bg-black my-2" type="submit">
           Confirmar Registro
         </button>
@@ -127,7 +176,22 @@
           href="/"
           class="mb-3 me-2 mb-md-0 text-muted text-decoration-none lh-1"
         >
-          <img class="footer-logo" src="/images/Logo.png" alt="Logo" />
+          <div
+            style="
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              height: 200px;
+            "
+          >
+            <img
+              class="mb-4"
+              src="assets/img/Logo.png"
+              alt="Logo"
+              width="50%"
+              height="50%"
+            />
+          </div>
         </a>
         <span class="footer-text">&copy; 2023 RestaurantNow</span>
       </div>

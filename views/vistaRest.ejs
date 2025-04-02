@@ -115,7 +115,6 @@
         </div>
         <% }) %>
       </section>
-      <!-- Platos disponibles -->
       <section class="container">
         <h2>Platos Disponibles</h2>
         <form action="/reservar" method="POST">
@@ -125,7 +124,6 @@
             value="<%= id_restaurante %>"
           />
 
-          <!-- Barra de búsqueda -->
           <div class="mb-3">
             <input
               id="searchInput"
@@ -140,7 +138,9 @@
             <div class="card card-plato">
               <div class="card-body">
                 <h5 class="card-title"><%= plato.nombre %></h5>
-                <p class="card-body"><%= plato.descripcion %></p>
+                <ul>
+                  <li class="card-body"><%= plato.descripcion %></li>
+                </ul>
                 <p class="card-text">Precio: €<%= plato.precio.toFixed(2) %></p>
 
                 <label for="plato_<%= plato.id_plato %>">Cantidad:</label>

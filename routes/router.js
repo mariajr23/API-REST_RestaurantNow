@@ -20,7 +20,7 @@ generarHorariosMensuales();
 function obtenerRestaurantes() {
   return new Promise((resolve, reject) => {
     conexion.query(
-      "SELECT id_restaurante FROM restaurantes WHERE estado = 'aceptado'",
+      "SELECT id_restaurante FROM restaurantes WHERE estado = 'aceptado' OR 'pendiente'",
       (error, results) => {
         if (error) {
           reject(error);
@@ -72,6 +72,16 @@ async function generarHorariosMensuales() {
 
     for (const { id_restaurante } of restaurantes) {
       console.log(
+        `🛠 Eliminando horarios antiguos para restaurante ID: ${id_restaurante}`
+      );
+
+      // ⚡ Elimina los horarios no reservados antes de generar nuevos
+      await eliminarHorariosNoReservados(conexion, id_restaurante);
+
+      console.log(
+        `✅ Horarios antiguos eliminados para restaurante ID: ${id_restaurante}`
+      );
+      console.log(
         `🛠 Generando horarios para restaurante ID: ${id_restaurante}`
       );
 
@@ -93,7 +103,7 @@ async function generarHorariosMensuales() {
             [id_restaurante, fecha],
             (error, results) => {
               if (error) reject(error);
-              else resolve(results.map((row) => row.hora)); // Lista de horas ya generadas
+              else resolve(results.map((row) => row.hora));
             }
           );
         });
@@ -109,7 +119,7 @@ async function generarHorariosMensuales() {
             const horaFin = new Date(`${fecha}T${horario.hora_fin}`);
 
             while (horaActual < horaFin) {
-              const horaString = horaActual.toTimeString().slice(0, 5); // Formato HH:MM
+              const horaString = horaActual.toTimeString().slice(0, 5);
 
               if (!horariosExistentes.includes(horaString)) {
                 horariosInsertar.push([
@@ -154,6 +164,24 @@ async function generarHorariosMensuales() {
   } catch (error) {
     console.error("❌ Error generando horarios:", error);
   }
+}
+
+function eliminarHorariosNoReservados(conexion, id_restaurante) {
+  return new Promise((resolve, reject) => {
+    const query =
+      "DELETE FROM horarios_generados WHERE id_restaurante = ? AND disponible = 1";
+    conexion.query(query, [id_restaurante], (err, result) => {
+      if (err) {
+        console.error("Error al eliminar horarios:", err);
+        reject(err);
+      } else {
+        console.log(
+          `🗑 Se eliminaron ${result.affectedRows} horarios no reservados para el restaurante ID: ${id_restaurante}`
+        );
+        resolve();
+      }
+    });
+  });
 }
 
 router.get("/verificar-sesion", (req, res) => {
@@ -268,7 +296,7 @@ router.post("/registrar/cliente", async (req, res) => {
 });
 
 router.post("/registrar/restaurante", async (req, res) => {
-  const { nombre, email, contrasena, telefono, direccion } = req.body;
+  const { nombre, email, contrasena, telefono } = req.body;
 
   try {
     // Encriptar la contraseña
@@ -365,12 +393,37 @@ router.get("/restaurante/crear", (req, res) => {
   );
 });
 router.post("/restaurante/crear", isAuthenticated, (req, res) => {
-  const { nombre, descripcion, direccion, telefono } = req.body;
+  const {
+    nombre,
+    descripcion,
+    direccion,
+    telefono,
+    dias_semana,
+    hora_inicio,
+    hora_fin,
+    intervalo,
+  } = req.body;
   const id_usuario = req.session.user.id;
+
+  // Depuración: Verificar los datos recibidos
+  console.log("Datos recibidos:", req.body);
+
+  if (
+    !nombre ||
+    !direccion ||
+    !telefono ||
+    !dias_semana ||
+    !hora_inicio ||
+    !hora_fin ||
+    !intervalo
+  ) {
+    return res.status(400).send("Faltan datos obligatorios.");
+  }
 
   const queryExistente = "SELECT * FROM restaurantes WHERE id_usuario = ?";
   conexion.query(queryExistente, [id_usuario], (err, results) => {
     if (err) {
+      console.error("Error en la base de datos:", err);
       return res.status(500).send("Error en la base de datos");
     }
 
@@ -379,25 +432,59 @@ router.post("/restaurante/crear", isAuthenticated, (req, res) => {
         .status(400)
         .send("Este usuario ya tiene un restaurante registrado.");
     }
-    console.log("Datos del restaurante:", {
-      nombre,
-      descripcion,
-      direccion,
-      telefono,
-      id_usuario,
-    });
 
     const queryRestaurante =
       "INSERT INTO restaurantes (nombre, descripcion, direccion, telefono, id_usuario, estado) VALUES (?, ?, ?, ?, ?, 'pendiente')";
+
     conexion.query(
       queryRestaurante,
       [nombre, descripcion, direccion, telefono, id_usuario],
-      (err, results) => {
+      (err, result) => {
         if (err) {
+          console.error("Error al registrar el restaurante:", err);
           return res.status(500).send("Error al registrar el restaurante");
         }
 
-        res.redirect("/restaurante/dashboard");
+        const id_restaurante = result.insertId; // Obtenemos el ID del restaurante recién creado
+        console.log("Restaurante creado con ID:", id_restaurante);
+
+        // Verificamos si los datos del horario son correctos antes de insertarlos
+        if (
+          !id_restaurante ||
+          !dias_semana ||
+          !hora_inicio ||
+          !hora_fin ||
+          !intervalo
+        ) {
+          console.error("Datos de horario incorrectos:", {
+            id_restaurante,
+            dias_semana,
+            hora_inicio,
+            hora_fin,
+            intervalo,
+          });
+          return res.status(400).send("Error con los datos del horario");
+        }
+
+        const queryHorario =
+          "INSERT INTO horarios_restaurantes (id_restaurante, dias_semana, hora_inicio, hora_fin, intervalo) VALUES (?, ?, ?, ?, ?)";
+
+        conexion.query(
+          queryHorario,
+          [id_restaurante, dias_semana, hora_inicio, hora_fin, intervalo],
+          (err) => {
+            if (err) {
+              console.error("Error al registrar el horario:", err);
+              return res
+                .status(500)
+                .send("Error al registrar el horario del restaurante");
+            }
+
+            console.log("Horario registrado correctamente.");
+            generarHorariosMensuales();
+            res.redirect("/restaurante/dashboard");
+          }
+        );
       }
     );
   });
@@ -724,10 +811,8 @@ router.post(
         hora_fin,
         id_horario,
       ]);
-      console.log(
-        `✅ Horario actualizado para restaurante ID: ${id_restaurante}`
-      );
-      await generarHorariosMensuales(id_restaurante);
+      console.log(`✅ Horario actualizado para restaurante ID: ${id_horario}`);
+      await generarHorariosMensuales(id_horario);
       res.redirect("/restaurante/perfil");
     } catch (err) {
       console.error("Error al actualizar el horario:", err);
@@ -981,21 +1066,94 @@ router.get("/admin/adminUser", isAdmin, (req, res) => {
 router.post("/admin/adminUser/eliminarUsuario/:id", (req, res) => {
   const usuarioId = req.params.id;
 
-  const queryEliminarUsuario = "DELETE FROM `usuarios` WHERE id_usuario = ?";
+  // 1️⃣ Eliminar todas las reservas del usuario
+  const queryEliminarReservas = "DELETE FROM `reservas` WHERE id_usuario = ?";
 
-  conexion.query(queryEliminarUsuario, [usuarioId], (err, result) => {
+  conexion.query(queryEliminarReservas, [usuarioId], (err) => {
     if (err) {
-      console.error("Error al eliminar el usuario:", err);
+      console.error("Error al eliminar las reservas del usuario:", err);
       return res.status(500).send("Error al procesar la solicitud");
     }
 
-    if (result.affectedRows === 0) {
-      console.log("No se encontró el usuario con ese ID.");
-      return res.status(404).send("Usuario no encontrado");
+    // 2️⃣ Luego, eliminar al usuario
+    const queryEliminarUsuario = "DELETE FROM `usuarios` WHERE id_usuario = ?";
+
+    conexion.query(queryEliminarUsuario, [usuarioId], (err, result) => {
+      if (err) {
+        console.error("Error al eliminar el usuario:", err);
+        return res.status(500).send("Error al procesar la solicitud");
+      }
+
+      if (result.affectedRows === 0) {
+        console.log("No se encontró el usuario con ese ID.");
+        return res.status(404).send("Usuario no encontrado");
+      }
+
+      console.log("Usuario y sus reservas eliminados correctamente.");
+      res.redirect("/admin/adminUser");
+    });
+  });
+});
+
+//IMPLEMENTAR EN EL FRONT_END
+router.post("/admin/adminRest/eliminarRestaurante/:id", (req, res) => {
+  const id_restaurante = req.params.id;
+
+  const queryBuscarUsuario =
+    "SELECT id_usuario FROM restaurantes WHERE id_restaurante = ?";
+
+  conexion.query(queryBuscarUsuario, [id_restaurante], (err, result) => {
+    if (err) {
+      console.error("Error al buscar el usuario:", err);
+      return res.status(500).send("Error al procesar la solicitud");
     }
 
-    console.log("Usuario eliminado correctamente");
-    res.redirect("/admin/adminUser");
+    if (result.length === 0) {
+      console.log("No se encontró un restaurante con ese ID.");
+      return res.status(404).send("Restaurante no encontrado");
+    }
+
+    const id_usuario = result[0].id_usuario;
+
+    const queryEliminarReservaPlatos =
+      "DELETE FROM reserva_platos WHERE id_reserva IN (SELECT id_reserva FROM reservas WHERE id_restaurante = ?)";
+    const queryEliminarReservas =
+      "DELETE FROM reservas WHERE id_restaurante = ?";
+    const queryEliminarPlatos = "DELETE FROM platos WHERE id_restaurante = ?";
+    const queryEliminarRestaurante =
+      "DELETE FROM restaurantes WHERE id_restaurante = ?";
+    const queryEliminarUsuario = "DELETE FROM usuarios WHERE id_usuario = ?";
+
+    conexion.query(queryEliminarReservaPlatos, [id_restaurante], (err) => {
+      if (err) return res.status(500).send("Error eliminando reserva_platos");
+
+      conexion.query(queryEliminarReservas, [id_restaurante], (err) => {
+        if (err) return res.status(500).send("Error eliminando reservas");
+
+        conexion.query(queryEliminarPlatos, [id_restaurante], (err) => {
+          if (err) return res.status(500).send("Error eliminando platos");
+
+          conexion.query(queryEliminarRestaurante, [id_restaurante], (err) => {
+            if (err)
+              return res.status(500).send("Error eliminando restaurante");
+
+            conexion.query(
+              queryEliminarUsuario,
+              [id_usuario],
+              (err, result) => {
+                if (err)
+                  return res.status(500).send("Error eliminando usuario");
+
+                console.log(
+                  "Usuario y todos sus datos eliminados correctamente."
+                );
+                res.redirect("/admin/adminRest");
+              }
+            );
+          });
+        });
+      });
+    });
   });
 });
 
