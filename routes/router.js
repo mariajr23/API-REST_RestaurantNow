@@ -2,7 +2,6 @@ const express = require("express");
 const router = express.Router();
 const bcrypt = require("bcrypt");
 const saltRounds = 10;
-const nodemailer = require("nodemailer");
 const crypto = require("crypto");
 const { conexion, buscarRestaurantes } = require("../database/bd");
 const { isAuthenticated, isAdmin } = require("../middleware/auth");
@@ -10,6 +9,10 @@ const { User } = require("../models/User");
 const paypal = require("@paypal/checkout-server-sdk");
 const paypalClient = require("./paypal");
 require("dotenv").config();
+const emailService = require("../utils/emailService");
+const util = require("util");
+conexion.query = util.promisify(conexion.query);
+
 // Configuración del entorno de PayPal en sandbox
 const environment = new paypal.core.SandboxEnvironment(
   "PAYPAL_CLIENT_ID",
@@ -192,15 +195,6 @@ router.get("/verificar-sesion", (req, res) => {
   }
 });
 
-//Configuracion nodemailer
-const transporter = nodemailer.createTransport({
-  service: "Gmail",
-  auth: {
-    user: "mjimenez19@alu.ucam.edu",
-    pass: "Maria230100=",
-  },
-});
-
 // Middleware para manejar la sesión
 router.use((req, res, next) => {
   req.user = req.session.user || null;
@@ -268,16 +262,16 @@ router.get("/registro", (req, res) => {
 });
 
 router.post("/registrar/cliente", async (req, res) => {
-  const { nombre, email, contrasena, telefono } = req.body;
+  const { nombre, apellido, email, contrasena, telefono } = req.body; // 🔥 Asegúrate de recibir apellido
 
   try {
     const hashedPassword = await bcrypt.hash(contrasena, 10);
     const query = `INSERT INTO usuarios (nombre, apellido, email, contrasena, telefono, rol) 
-                   VALUES (?, ?, ?, ?, 'usuario')`;
+                          VALUES (?, ?, ?, ?, ?, 'usuario')`; // 🔥 Agregar apellido en la consulta
 
     conexion.query(
       query,
-      [nombre, email, hashedPassword, telefono],
+      [nombre, apellido, email, hashedPassword, telefono], // 🔥 Pasar apellido en los valores
       (error, results) => {
         if (error) {
           console.error(error);
@@ -890,73 +884,115 @@ router.post("/iniciarsesion-usuario", (req, res) => {
     });
   });
 });
+// Ruta para mostrar la vista de recuperar contraseña
+router.get("/recuperar-password", (req, res) => {
+  res.render("recuperar-password"); // Renderiza el archivo HTML de la vista
+});
 
-//Rutas para la recuperacion de contraseña
-router.get("/resetar-password", (req, res) => {
+router.post("/recuperar-password", async (req, res) => {
+  const { email } = req.body;
+
+  // Verificar si el email existe en la base de datos
+  const [results] = await conexion.query(
+    "SELECT * FROM usuarios WHERE email = ?",
+    [email]
+  );
+
+  if (results.length === 0) {
+    return res.status(404).send("Correo electrónico no registrado");
+  }
+
+  const userId = results.id_usuario;
+
+  // Guardar el id_usuario en la sesión
+  req.session.userId = userId;
+
+  // Generar un token de recuperación de contraseña
+  const token = crypto.randomBytes(20).toString("hex");
+  const expiry = new Date(Date.now() + 3600000); // Expira en 1 hora
+
+  // Guardar el token en la base de datos junto con su fecha de expiración
+  await conexion.query(
+    "UPDATE usuarios SET resetToken = ?, resetTokenExpires = ? WHERE email = ?",
+    [token, expiry, email]
+  );
+
+  // Crear el enlace de recuperación
+  const resetUrl = `http://localhost:3000/resetar-password?token=${token}`;
+
+  // Enviar un correo al usuario con el enlace de recuperación de contraseña
+  await emailService.sendPasswordResetEmail(email, token);
+
+  // Responder con un mensaje indicando que el email fue enviado
+  res.send("Enlace de recuperación enviado al correo electrónico");
+});
+
+// Ruta GET para mostrar el formulario de restablecimiento de contraseña
+router.get("/resetar-password", async (req, res) => {
   const { token } = req.query;
 
-  const query =
-    "SELECT * FROM usuarios WHERE resetToken = ? AND resetTokenExpires > ?";
-  conexion.query(query, [token, Date.now()], (error, results) => {
-    if (error) {
-      console.error("Error en la consulta:", error);
-      return res.status(500).send("Error en el servidor");
-    }
+  try {
+    // Verificar si el token es válido y no ha expirado
+    const [results] = await conexion.query(
+      "SELECT id_usuario FROM usuarios WHERE resetToken = ? AND resetTokenExpires > NOW()",
+      [token]
+    );
 
     if (results.length === 0) {
       return res.status(400).send("Token inválido o expirado");
     }
 
-    res.render("resetar-password", { token });
-  });
+    // Usar el id_usuario de la sesión en lugar de la consulta
+    const userId = req.session.userId; // Aquí obtienes el id_usuario de la sesión
+
+    // Si el id_usuario no está en la sesión, el token es válido pero la sesión ha expirado
+    if (!userId) {
+      return res.status(400).send("Sesión inválida o expirada");
+    }
+
+    // Si el token es válido y el id_usuario es correcto, renderiza el formulario de restablecimiento
+    res.render("resetar-password", { token, userId });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Error al procesar la solicitud");
+  }
 });
 
-router.post("/recuperar-password", (req, res) => {
-  const { email } = req.body;
-  const query = "SELECT * FROM usuarios WHERE email = ?";
+// Ruta POST para actualizar la contraseña del usuario
+router.post("/resetar-password", async (req, res) => {
+  const { token, password } = req.body;
 
-  conexion.query(query, [email], (error, results) => {
-    if (error) {
-      console.error("Error en la consulta:", error);
-      return res.status(500).send("Error en el servidor");
-    }
+  try {
+    // Verificar si el token es válido y no ha expirado
+    const [results] = await conexion.query(
+      "SELECT id_usuario FROM usuarios WHERE resetToken = ? AND resetTokenExpires > NOW()",
+      [token]
+    );
 
     if (results.length === 0) {
-      return res.status(404).send("Correo electrónico no registrado");
+      return res.status(400).send("Token inválido o expirado");
     }
 
-    const user = results[0];
-    const token = crypto.randomBytes(20).toString("hex");
-    const expiry = Date.now() + 3600000; // 1 hora
+    const userId = req.session.userId; // Usar el id_usuario desde la sesión
 
-    const updateQuery =
-      "UPDATE usuarios SET resetToken = ?, resetTokenExpires = ? WHERE email = ?";
-    conexion.query(updateQuery, [token, expiry, email], (error) => {
-      if (error) {
-        console.error("Error al actualizar el token:", error);
-        return res.status(500).send("Error al procesar la solicitud");
-      }
+    // Si no hay id_usuario en la sesión, es un error
+    if (!userId) {
+      return res.status(400).send("Sesión inválida o expirada");
+    }
 
-      const resetLink = `http://${req.headers.host}/resetar-password?token=${token}`;
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-      transporter.sendMail(
-        {
-          to: email,
-          from: "tu_email@gmail.com",
-          subject: "Recuperación de Contraseña",
-          text: "Haz clic en el siguiente enlace para recuperar tu contraseña: ${resetLink}",
-        },
-        (err) => {
-          if (err) {
-            console.error("Error al enviar el correo:", err);
-            return res.status(500).send("Error al enviar el correo");
-          }
+    // Actualizar la contraseña en la base de datos y eliminar el token
+    await conexion.query(
+      "UPDATE usuarios SET contrasena = ?, resetToken = NULL, resetTokenExpires = NULL WHERE id_usuario = ?",
+      [hashedPassword, userId]
+    );
 
-          res.send("Enlace de recuperación enviado al correo electrónico");
-        }
-      );
-    });
-  });
+    res.send("Contraseña actualizada con éxito");
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Error al actualizar la contraseña");
+  }
 });
 
 router.get("/acceso-denegado", (req, res) => {
@@ -1095,7 +1131,6 @@ router.post("/admin/adminUser/eliminarUsuario/:id", (req, res) => {
   });
 });
 
-//IMPLEMENTAR EN EL FRONT_END
 router.post("/admin/adminRest/eliminarRestaurante/:id", (req, res) => {
   const id_restaurante = req.params.id;
 
