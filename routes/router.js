@@ -1041,25 +1041,46 @@ router.get("/admin/adminRest", (req, res) => {
 router.get("/admin/restaurantes/aceptar/:id", (req, res) => {
   const restauranteId = req.params.id;
 
-  const queryActualizarRestaurante =
-    "UPDATE restaurantes SET estado = ? WHERE id_restaurante = ?";
-  conexion.query(
-    queryActualizarRestaurante,
-    ["aceptado", restauranteId],
-    (err, result) => {
-      if (err) {
-        console.error("Error al aceptar restaurante:", err);
-        return res.status(500).send("Error al procesar la solicitud");
-      }
-      if (result.affectedRows === 0) {
-        console.log(
-          "No se actualizó ningún restaurante, es posible que el ID no sea válido."
-        );
-        return res.status(404).send("Restaurante no encontrado");
-      }
-      res.redirect("/admin/adminRest");
+  // Obtener el correo y el nombre del usuario asociado al restaurante
+  const queryObtenerRestaurante = `
+    SELECT r.nombre, u.email 
+    FROM restaurantes r 
+    JOIN usuarios u ON r.id_usuario = u.id_usuario 
+    WHERE r.id_restaurante = ?`;
+
+  conexion.query(queryObtenerRestaurante, [restauranteId], (err, rows) => {
+    if (err) {
+      console.error("Error al obtener datos del restaurante:", err);
+      return res.status(500).send("Error al obtener datos del restaurante");
     }
-  );
+    if (rows.length === 0) {
+      return res.status(404).send("Restaurante no encontrado");
+    }
+
+    const { nombre, email } = rows[0];
+
+    const queryActualizarRestaurante =
+      "UPDATE restaurantes SET estado = ? WHERE id_restaurante = ?";
+
+    conexion.query(
+      queryActualizarRestaurante,
+      ["aceptado", restauranteId],
+      async (err, result) => {
+        if (err) {
+          console.error("Error al aceptar restaurante:", err);
+          return res.status(500).send("Error al procesar la solicitud");
+        }
+        if (result.affectedRows === 0) {
+          return res.status(404).send("Restaurante no encontrado");
+        }
+
+        // Enviar email de confirmación
+        await emailService.sendRestaurantApprovalEmail(email, nombre, true);
+
+        res.redirect("/admin/adminRest");
+      }
+    );
+  });
 });
 
 router.get("/admin/restaurantes/rechazar/:id", (req, res) => {
@@ -1071,7 +1092,7 @@ router.get("/admin/restaurantes/rechazar/:id", (req, res) => {
   conexion.query(
     queryActualizarRestaurante,
     ["rechazado", restauranteId],
-    (err, result) => {
+    async (err, result) => {
       if (err) {
         console.error("Error al rechazar restaurante:", err);
         return res.status(500).send("Error al procesar la solicitud");
@@ -1082,6 +1103,7 @@ router.get("/admin/restaurantes/rechazar/:id", (req, res) => {
         console.log("No se encontró el restaurante con ese ID.");
         return res.status(404).send("Restaurante no encontrado");
       }
+      await emailService.sendRestaurantApprovalEmail(email, nombre, false);
 
       console.log("Restaurante rechazado correctamente");
       res.redirect("/admin/adminRest"); // Redirige a la página de administración
