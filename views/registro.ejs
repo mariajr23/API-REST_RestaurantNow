@@ -10,10 +10,26 @@
       name="viewport"
       content="width=device-width, user-scalable=no, initial-scale=1.0, minimum-scale=1.0"
     />
-    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
     <title>RestaurantNow</title>
-    <link rel="stylesheet" href="/css/estilos.css" />
-    <link rel="icon" href="/favicon.png" />
+    <!-- Vendor CSS Files -->
+    <link
+      href="assets/vendor/bootstrap/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="assets/vendor/bootstrap-icons/bootstrap-icons.css"
+      rel="stylesheet"
+    />
+    <link href="assets/vendor/aos/aos.css" rel="stylesheet" />
+    <link
+      href="assets/vendor/glightbox/css/glightbox.min.css"
+      rel="stylesheet"
+    />
+    <link href="assets/vendor/swiper/swiper-bundle.min.css" rel="stylesheet" />
+
+    <!-- Main CSS File -->
+    <link href="assets/css/main.css" rel="stylesheet" />
+
     <style>
       body {
         background-color: #f8f9fa;
@@ -58,41 +74,51 @@
     </style>
   </head>
   <body class="text-center">
-    <nav
-      class="container d-flex flex-wrap justify-content-center py-3 mb-4 text-dark border-bottom"
-    >
-      <a
-        href="/"
-        class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-decoration-none text-dark"
+    <header id="header" class="header d-flex align-items-center sticky-top">
+      <div
+        class="container position-relative d-flex align-items-center justify-content-between"
       >
-        <span class="fs-4">RestaurantNow</span>
-      </a>
-      <ul class="nav nav-pills">
-        <li class="nav-item">
-          <a href="/restaurantes" class="nav-link text-dark" aria-current="page"
-            >Restaurantes</a
-          >
-        </li>
-        <% if (!user) { %>
-        <li class="nav-item">
-          <a href="/login" class="nav-link text-dark">Iniciar Sesión</a>
-        </li>
-        <li class="nav-item">
-          <a href="/registro" class="nav-link text-dark">Registrarse</a>
-        </li>
-        <% } else { %>
-        <li class="nav-item">
-          <a href="/user/perfil" class="nav-link text-dark">Perfil</a>
-        </li>
-        <li class="nav-item">
-          <a href="/user/mis-pedidos" class="nav-link text-dark">Mis Pedidos</a>
-        </li>
-        <li class="nav-item">
-          <a href="/logout" class="nav-link text-dark">Cerrar Sesión</a>
-        </li>
-        <% } %>
-      </ul>
-    </nav>
+        <a href="/" class="logo d-flex align-items-center me-auto me-xl-0">
+          <!-- <img src="assets/img/logo.png" alt=""> -->
+          <h1 class="sitename">RestaurantNow</h1>
+          <span>.</span>
+        </a>
+        <nav id="navmenu" class="navmenu">
+          <ul class="nav nav-pills">
+            <li class="nav-item">
+              <a
+                href="/restaurantes"
+                class="nav-link text-dark"
+                aria-current="page"
+                >Restaurantes</a
+              >
+            </li>
+            <% if (!user) { %>
+            <li class="nav-item">
+              <a href="/login" class="nav-link text-dark">Iniciar Sesión</a>
+            </li>
+            <li class="nav-item">
+              <a href="/registro" class="nav-link text-dark">Registrarse</a>
+            </li>
+            <% } else { %>
+            <li class="nav-item">
+              <a href="/user/perfil" class="nav-link text-dark">Perfil</a>
+            </li>
+            <li class="nav-item">
+              <a href="/user/mis-pedidos" class="nav-link text-dark"
+                >Mis Pedidos</a
+              >
+            </li>
+            <li class="nav-item">
+              <a href="/logout" class="nav-link text-dark">Cerrar Sesión</a>
+            </li>
+            <% } %>
+          </ul>
+          <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
+        </nav>
+        <a class="btn-getstarted" href="/restaurantes">Reservar</a>
+      </div>
+    </header>
     <main class="login">
       <form class="form-signin" action="/registrar/cliente" method="POST">
         <img
@@ -189,5 +215,14 @@
         <span class="footer-text">&copy; 2023 RestaurantNow</span>
       </div>
     </footer>
+    <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/vendor/php-email-form/validate.js"></script>
+    <script src="assets/vendor/aos/aos.js"></script>
+    <script src="assets/vendor/glightbox/js/glightbox.min.js"></script>
+    <script src="assets/vendor/purecounter/purecounter_vanilla.js"></script>
+    <script src="assets/vendor/swiper/swiper-bundle.min.js"></script>
+
+    <!-- Main JS File -->
+    <script src="assets/js/main.js"></script>
   </body>
 </html>

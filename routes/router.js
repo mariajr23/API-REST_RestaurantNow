@@ -1,16 +1,20 @@
 const express = require("express");
 const router = express.Router();
 const bcrypt = require("bcrypt");
-const fetch = require("node-fetch");
 const saltRounds = 10;
 const nodemailer = require("nodemailer");
 const crypto = require("crypto");
-const moment = require("moment");
 const { conexion, buscarRestaurantes } = require("../database/bd");
 const { isAuthenticated, isAdmin } = require("../middleware/auth");
 const { User } = require("../models/User");
 const paypal = require("@paypal/checkout-server-sdk");
 const paypalClient = require("./paypal");
+require("dotenv").config();
+// Configuración del entorno de PayPal en sandbox
+const environment = new paypal.core.SandboxEnvironment(
+  "PAYPAL_CLIENT_ID",
+  "PAYPAL_CLIENT_SECRET"
+);
 
 generarHorariosMensuales();
 function obtenerRestaurantes() {
@@ -63,7 +67,7 @@ async function generarHorariosMensuales() {
     for (let i = 0; i < 30; i++) {
       let fecha = new Date();
       fecha.setDate(hoy.getDate() + i);
-      fechas.push(fecha.toISOString().split("T")[0]); // Formato YYYY-MM-DD
+      fechas.push(fecha.toISOString().split("T")[0]);
     }
 
     for (const { id_restaurante } of restaurantes) {
@@ -83,48 +87,35 @@ async function generarHorariosMensuales() {
       let horariosInsertar = [];
 
       for (const fecha of fechas) {
+        const horariosExistentes = await new Promise((resolve, reject) => {
+          conexion.query(
+            "SELECT hora FROM horarios_generados WHERE id_restaurante = ? AND fecha = ?",
+            [id_restaurante, fecha],
+            (error, results) => {
+              if (error) reject(error);
+              else resolve(results.map((row) => row.hora)); // Lista de horas ya generadas
+            }
+          );
+        });
+
         const diaSemana = new Date(fecha)
           .toLocaleDateString("es-ES", { weekday: "long" })
-          .toLowerCase(); // Obtener el día de la semana en español
+          .toLowerCase();
 
-        horarios.forEach(async (horario) => {
-          const diasSemanaArray = horario.dias_semana.split(","); // Convierte el SET en un array de días
-          const diaSemanaLowerCase = diaSemana.toLowerCase(); // Convierte el día calculado a minúsculas
-
-          // Verifica si el día de la semana actual está presente en el campo SET
-          if (
-            diasSemanaArray.some(
-              (dia) => dia.toLowerCase() === diaSemanaLowerCase
-            )
-          ) {
+        for (const horario of horarios) {
+          const diasSemanaArray = horario.dias_semana.split(",");
+          if (diasSemanaArray.some((dia) => dia.toLowerCase() === diaSemana)) {
             let horaActual = new Date(`${fecha}T${horario.hora_inicio}`);
             const horaFin = new Date(`${fecha}T${horario.hora_fin}`);
 
             while (horaActual < horaFin) {
-              // Verifica si ya existe un horario para este restaurante y fecha
-              const existeHorario = await new Promise((resolve, reject) => {
-                conexion.query(
-                  "SELECT 1 FROM horarios_generados WHERE id_restaurante = ? AND fecha = ? AND hora = ? LIMIT 1",
-                  [
-                    id_restaurante,
-                    fecha,
-                    horaActual.toTimeString().slice(0, 5),
-                  ],
-                  (error, results) => {
-                    if (error) {
-                      reject(error);
-                    } else {
-                      resolve(results.length > 0); // Si existe un registro, se devuelve true
-                    }
-                  }
-                );
-              });
+              const horaString = horaActual.toTimeString().slice(0, 5); // Formato HH:MM
 
-              if (!existeHorario) {
+              if (!horariosExistentes.includes(horaString)) {
                 horariosInsertar.push([
                   id_restaurante,
                   fecha,
-                  horaActual.toTimeString().slice(0, 5), // Formato HH:MM
+                  horaString,
                   true,
                 ]);
               }
@@ -134,13 +125,13 @@ async function generarHorariosMensuales() {
               );
             }
           }
-        });
+        }
       }
 
       if (horariosInsertar.length > 0) {
         await new Promise((resolve, reject) => {
           conexion.query(
-            "INSERT INTO horarios_generados (id_restaurante, fecha, hora, disponible) VALUES ?",
+            `INSERT IGNORE INTO horarios_generados (id_restaurante, fecha, hora, disponible) VALUES ?`,
             [horariosInsertar],
             (error) => {
               if (error) reject(error);
@@ -154,7 +145,7 @@ async function generarHorariosMensuales() {
         );
       } else {
         console.log(
-          `⚠ No se generaron horarios para restaurante ID: ${id_restaurante}`
+          `⚠ No se generaron nuevos horarios para restaurante ID: ${id_restaurante}`
         );
       }
     }
@@ -164,15 +155,6 @@ async function generarHorariosMensuales() {
     console.error("❌ Error generando horarios:", error);
   }
 }
-
-require("dotenv").config();
-// Configuración del entorno de PayPal en sandbox
-const environment = new paypal.core.SandboxEnvironment(
-  "PAYPAL_CLIENT_ID", // Reemplaza con tu Client ID de Sandbox
-  "PAYPAL_CLIENT_SECRET" // Reemplaza con tu Secret de Sandbox
-);
-
-//const client = new paypal.core.PayPalHttpClient(environment);
 
 router.get("/verificar-sesion", (req, res) => {
   if (req.session && req.session.user) {
@@ -320,7 +302,6 @@ router.post("/registrar/restaurante", async (req, res) => {
   }
 });
 
-//Rutas para la administracion de Restaurantes
 router.post("/iniciarsesion-restaurante", (req, res) => {
   const { email, contrasena } = req.body;
 
@@ -505,7 +486,6 @@ router.get("/restaurante/reservas/aceptar/:id_reserva", (req, res) => {
           .send("La reserva ya ha sido procesada y no puede modificarse.");
       }
 
-      // Proceder con la aceptación
       conexion.query(
         "UPDATE reservas SET estado = 'confirmada' WHERE id_reserva = ?",
         [id_reserva],
@@ -567,7 +547,6 @@ router.get("/restaurante/platos", isAuthenticated, async (req, res) => {
     }
   );
 });
-//Editar platos
 router.post("/restaurante/platos/edit/:id_plato", (req, res) => {
   const { id_plato } = req.params;
   const { nombre, descripcion, precio } = req.body;
@@ -597,7 +576,6 @@ router.post("/restaurante/platos/edit/:id_plato", (req, res) => {
     }
   );
 });
-//Mostar plato en la web
 router.post("/restaurante/platos/visibility/:id", (req, res) => {
   const platoId = req.params.id;
   const { visible } = req.body;
@@ -622,7 +600,6 @@ router.post("/restaurante/platos/visibility/:id", (req, res) => {
     }
   });
 });
-//Añadir plato al menu
 router.post("/restaurante/platos/add", (req, res) => {
   const { nombre, descripcion, precio } = req.body;
   const userId = req.session.user?.id;
@@ -654,6 +631,7 @@ router.post("/restaurante/platos/add", (req, res) => {
     );
   });
 });
+//Perfil
 router.get("/restaurante/perfil", isAuthenticated, (req, res) => {
   const userId = req.session.user?.id;
 
@@ -719,6 +697,7 @@ router.post("/restaurante/perfil", isAuthenticated, (req, res) => {
     }
   );
 });
+//Editar Horarios
 router.post(
   "/restaurante/editar-horario",
   isAuthenticated,
@@ -745,7 +724,10 @@ router.post(
         hora_fin,
         id_horario,
       ]);
-
+      console.log(
+        `✅ Horario actualizado para restaurante ID: ${id_restaurante}`
+      );
+      await generarHorariosMensuales(id_restaurante);
       res.redirect("/restaurante/perfil");
     } catch (err) {
       console.error("Error al actualizar el horario:", err);
