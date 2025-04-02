@@ -937,7 +937,6 @@ router.get("/resetar-password", async (req, res) => {
       "SELECT id_usuario FROM usuarios WHERE resetToken = ? AND resetTokenExpires > NOW()",
       [token]
     );
-
     if (results.length === 0) {
       return res.status(400).send("Token inválido o expirado");
     }
