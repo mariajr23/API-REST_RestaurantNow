@@ -272,13 +272,15 @@ router.post("/registrar/cliente", async (req, res) => {
     conexion.query(
       query,
       [nombre, apellido, email, hashedPassword, telefono], // 🔥 Pasar apellido en los valores
-      (error, results) => {
+      async (error, results) => {
         if (error) {
           console.error(error);
           return res
             .status(500)
             .json({ error: "Error al registrar el cliente" });
         }
+
+        await emailService.sendAccountCreationEmail(email, nombre);
 
         return res.redirect("/login");
       }
@@ -303,7 +305,7 @@ router.post("/registrar/restaurante", async (req, res) => {
     conexion.query(
       queryUsuario,
       [nombre, email, hashedPassword, telefono],
-      (errorUsuario, resultsUsuario) => {
+      async (errorUsuario, resultsUsuario) => {
         if (errorUsuario) {
           console.error("Error al registrar el usuario:", errorUsuario);
           return res
@@ -315,6 +317,9 @@ router.post("/registrar/restaurante", async (req, res) => {
           "Usuario registrado con éxito, ID:",
           resultsUsuario.insertId
         );
+
+        await sendAccountCreationEmail(email, nombre);
+
         return res.redirect("/login");
       }
     );
