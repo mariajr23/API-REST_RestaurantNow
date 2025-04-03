@@ -581,6 +581,17 @@ router.get("/restaurante/reservas/aceptar/:id_reserva", (req, res) => {
             return res.status(500).send("Error al aceptar la reserva.");
           }
 
+          conexion.query(
+            "SELECT email, nombre FROM usuarios WHERE id_usuario = ?",
+            [id_usuario],
+            async (errUser, userResults) => {
+              if (!errUser && userResults.length > 0) {
+                const { email, nombre } = userResults[0];
+                await sendReservationStatusEmail(email, nombre, true);
+              }
+            }
+          );
+
           res.redirect("/restaurante/reservas");
         }
       );
@@ -598,7 +609,16 @@ router.get("/restaurante/reservas/rechazar/:id_reserva", (req, res) => {
         console.error(err);
         return res.status(500).send("Error al aceptar la reserva.");
       }
-
+      conexion.query(
+        "SELECT email, nombre FROM usuarios WHERE id_usuario = ?",
+        [id_usuario],
+        async (errUser, userResults) => {
+          if (!errUser && userResults.length > 0) {
+            const { email, nombre } = userResults[0];
+            await sendReservationStatusEmail(email, nombre, false);
+          }
+        }
+      );
       res.redirect("/restaurante/reservas");
     }
   );
@@ -1617,6 +1637,24 @@ router.post("/capture-order", async (req, res) => {
           if (result.affectedRows === 0) {
             return res.status(404).json({ message: "Reserva no encontrada" });
           }
+
+          const queryUser = `SELECT nombre, email FROM usuarios WHERE id_usuario = ?`;
+          conexion.query(queryUser, [userId], async (err, userResult) => {
+            if (err || userResult.length === 0) {
+              console.error("Error al obtener datos del usuario:", err);
+              return;
+            }
+
+            const { nombre, email } = userResult[0];
+
+            // Enviar email de pago confirmado
+            await emailService.sendEmail(
+              email,
+              "Pago Confirmado - Esperando Confirmación del Restaurante",
+              `<p>Hola ${nombre},</p>
+               <p>Tu pago ha sido confirmado. Ahora tu reserva está pendiente de confirmación por el restaurante.</p>`
+            );
+          });
 
           return res.json({
             success: true,
