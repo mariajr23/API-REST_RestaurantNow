@@ -71,9 +71,16 @@ async function sendReservationStatusEmail(email, name, confirmed) {
   await sendEmail(email, `Reserva ${status}`, html);
 }
 
+async function sendReservationPendingEmail(email, name) {
+  const html = `<p>Hola ${name},</p>
+                 <p>Tu reserva ha sido <strong>pagada y recibida</strong> por el restaurante. Espere la confirmacion</p>`;
+  await sendEmail(email, "Pago confirmado", html);
+}
+
 module.exports = {
   sendPasswordResetEmail,
   sendAccountCreationEmail,
   sendRestaurantApprovalEmail,
   sendReservationStatusEmail,
+  sendReservationPendingEmail,
 };

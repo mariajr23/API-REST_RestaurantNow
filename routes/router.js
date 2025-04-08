@@ -587,7 +587,11 @@ router.get("/restaurante/reservas/aceptar/:id_reserva", (req, res) => {
             async (errUser, userResults) => {
               if (!errUser && userResults.length > 0) {
                 const { email, nombre } = userResults[0];
-                await sendReservationStatusEmail(email, nombre, true);
+                await emailService.sendReservationStatusEmail(
+                  email,
+                  nombre,
+                  true
+                );
               }
             }
           );
@@ -615,7 +619,7 @@ router.get("/restaurante/reservas/rechazar/:id_reserva", (req, res) => {
         async (errUser, userResults) => {
           if (!errUser && userResults.length > 0) {
             const { email, nombre } = userResults[0];
-            await sendReservationStatusEmail(email, nombre, false);
+            await emailService.sendReservationStatusEmail(email, nombre, false);
           }
         }
       );
@@ -1462,116 +1466,123 @@ router.get("/resumenReserva", (req, res) => {
     paypalClientId: process.env.PAYPAL_CLIENT_ID,
     id_restaurante: req.query.restaurant,
     fecha: req.query.fecha,
-    hora: req.query.hora, // Obtener la hora de los query parameters
-    platos: JSON.parse(req.query.platos || "[]"),
-    total: parseFloat(req.query.total).toFixed(2),
+    hora: req.query.hora,
+    platos: platos,
+    total: total,
   });
 });
 router.post("/reservar", isAuthenticated, (req, res) => {
-  const { fecha, hora, id_restaurante, platosSeleccionados } = req.body;
+  try {
+    const { fecha, hora, id_restaurante } = req.body;
+    const platosSeleccionados = JSON.parse(req.body.platosSeleccionadosJSON);
 
-  // Validación de datos requeridos
-  if (!hora || !fecha || !id_restaurante) {
-    return res.status(400).send("La hora es obligatoria.");
-  }
+    console.log("Solicitud recibida en /reservar", req.body);
+    // Validación de datos requeridos
+    if (!fecha || !hora || !id_restaurante || !platosSeleccionados) {
+      return res
+        .status(400)
+        .send("Faltan datos necesarios para realizar la reserva.");
+    }
 
-  const usuario = req.session.user;
-  const id_usuario = usuario.id;
+    const usuario = req.session.user;
+    const id_usuario = usuario.id;
 
-  // Verificación de datos completos
-  if (!id_restaurante || !fecha || !hora || !id_usuario) {
-    return res
-      .status(400)
-      .send("Faltan datos necesarios para realizar la reserva");
-  }
+    const platosArray = Object.entries(platosSeleccionados)
+      .map(([id_plato, cantidad]) => ({
+        id_plato: parseInt(id_plato),
+        cantidad: parseInt(cantidad),
+      }))
+      .filter((p) => p.cantidad > 0);
 
-  // Preparación de los platos seleccionados
-  const platosArray = platosSeleccionados
-    .filter((plato) => plato !== "0")
-    .map((plato, index) => ({
-      id_plato: index + 1,
-      cantidad: parseInt(plato, 10),
-    }));
+    if (platosArray.length === 0) {
+      return res
+        .status(400)
+        .send("Debe seleccionar al menos un plato con cantidad mayor a 0.");
+    }
+    const id_restauranteFinal = Array.isArray(id_restaurante)
+      ? id_restaurante[0]
+      : id_restaurante;
 
-  let id_restauranteFinal = Array.isArray(id_restaurante)
-    ? id_restaurante[0]
-    : id_restaurante;
-
-  // Consultar el nombre del restaurante
-  const queryRestaurante = `SELECT nombre FROM restaurantes WHERE id_restaurante = ?`;
-  conexion.query(
-    queryRestaurante,
-    [id_restauranteFinal],
-    (errRest, resultsRest) => {
-      if (errRest) {
-        console.error("Error al obtener el nombre del restaurante:", errRest);
-        return res
-          .status(500)
-          .send("Error al obtener el nombre del restaurante");
-      }
-
-      if (resultsRest.length === 0) {
-        return res.status(404).send("Restaurante no encontrado");
-      }
-
-      const nombreRestaurante = resultsRest[0].nombre;
-
-      // Calcular el precio total de la reserva
-      calcularPrecioTotal(platosArray, (errCalc, platosConNombre, total) => {
-        if (errCalc) {
-          console.error("Error al calcular el total:", errCalc);
-          return res.status(500).send("Error al calcular el total");
+    // Consultar el nombre del restaurante
+    const queryRestaurante = `SELECT nombre FROM restaurantes WHERE id_restaurante = ?`;
+    conexion.query(
+      queryRestaurante,
+      [id_restauranteFinal],
+      (errRest, resultsRest) => {
+        if (errRest) {
+          console.error("Error al obtener el nombre del restaurante:", errRest);
+          return res
+            .status(500)
+            .send("Error al obtener el nombre del restaurante.");
         }
 
-        // Insertar la reserva en la base de datos
-        const reservaQuery = `
+        if (resultsRest.length === 0) {
+          return res.status(404).send("Restaurante no encontrado.");
+        }
+
+        const nombreRestaurante = resultsRest[0].nombre;
+
+        // Calcular el precio total de la reserva
+        calcularPrecioTotal(platosArray, (errCalc, platosConNombre, total) => {
+          if (errCalc) {
+            console.error("Error al calcular el total:", errCalc);
+            return res.status(500).send("Error al calcular el total.");
+          }
+
+          // Insertar la reserva en la base de datos
+          const reservaQuery = `
         INSERT INTO reservas (id_usuario, id_restaurante, fecha, hora, estado, total) 
         VALUES (?, ?, ?, ?, 'pendiente', ?)
       `;
-        conexion.query(
-          reservaQuery,
-          [id_usuario, id_restauranteFinal, fecha, hora, total],
-          (error, result) => {
-            if (error) {
-              console.error("Error al hacer la reserva:", error);
-              return res.status(500).send("Error al hacer la reserva");
-            }
+          conexion.query(
+            reservaQuery,
+            [id_usuario, id_restauranteFinal, fecha, hora, total],
+            (error, result) => {
+              if (error) {
+                console.error("Error al hacer la reserva:", error);
+                return res.status(500).send("Error al hacer la reserva.");
+              }
 
-            // Inserción de los platos seleccionados en la tabla de detalles de reserva
-            platosArray.forEach((plato) => {
-              const detalleQuery = `
-            INSERT INTO reserva_platos (id_reserva, id_plato, cantidad)
-            VALUES (?, ?, ?)
-          `;
-              conexion.query(
-                detalleQuery,
-                [result.insertId, plato.id_plato, plato.cantidad],
-                (errDetalle) => {
-                  if (errDetalle) {
-                    console.error(
-                      "Error al insertar los detalles de la reserva:",
-                      errDetalle
-                    );
+              const id_reserva = result.insertId;
+
+              // Insertar los platos seleccionados en la tabla de detalles de reserva
+              const detalleQuery = `INSERT INTO reserva_platos (id_reserva, id_plato, cantidad) VALUES (?, ?, ?)`;
+
+              platosArray.forEach((plato) => {
+                conexion.query(
+                  detalleQuery,
+                  [id_reserva, plato.id_plato, plato.cantidad],
+                  (errDetalle) => {
+                    if (errDetalle) {
+                      console.error(
+                        "Error al insertar los detalles de la reserva:",
+                        errDetalle
+                      );
+                    }
                   }
-                }
-              );
-            });
+                );
+              });
 
-            res.render("resumenReserva", {
-              paypalClientId: process.env.PAYPAL_CLIENT_ID,
-              id_restaurante: id_restauranteFinal,
-              fecha: fecha,
-              restaurant: nombreRestaurante,
-              platos: platosConNombre,
-              total: total,
-              fechaFormateada: fecha,
-              hora: hora,
-            });
-          }
-        );
-      });
-    }
-  );
+              // Renderizar la vista de resumen de la reserva
+              res.render("resumenReserva", {
+                paypalClientId: process.env.PAYPAL_CLIENT_ID,
+                id_restaurante: id_restauranteFinal,
+                fecha,
+                restaurant: nombreRestaurante,
+                platos: platosConNombre,
+                total,
+                fechaFormateada: fecha,
+                hora,
+              });
+            }
+          );
+        });
+      }
+    );
+  } catch (error) {
+    console.error("Error en la ruta /reservar:", error);
+    res.status(500).send("Error del servidor.");
+  }
 });
 
 function calcularPrecioTotal(platosArray, callback) {
@@ -1639,22 +1650,18 @@ router.post("/capture-order", async (req, res) => {
           }
 
           const queryUser = `SELECT nombre, email FROM usuarios WHERE id_usuario = ?`;
-          conexion.query(queryUser, [userId], async (err, userResult) => {
-            if (err || userResult.length === 0) {
-              console.error("Error al obtener datos del usuario:", err);
-              return;
+
+          // Enviar email de pago confirmado
+          conexion.query(
+            "SELECT email, nombre FROM usuarios WHERE id_usuario = ?",
+            [userId],
+            async (errUser, userResults) => {
+              if (!errUser && userResults.length > 0) {
+                const { email, nombre } = userResults[0];
+                await emailService.sendReservationPendingEmail(email, nombre);
+              }
             }
-
-            const { nombre, email } = userResult[0];
-
-            // Enviar email de pago confirmado
-            await emailService.sendEmail(
-              email,
-              "Pago Confirmado - Esperando Confirmación del Restaurante",
-              `<p>Hola ${nombre},</p>
-               <p>Tu pago ha sido confirmado. Ahora tu reserva está pendiente de confirmación por el restaurante.</p>`
-            );
-          });
+          );
 
           return res.json({
             success: true,

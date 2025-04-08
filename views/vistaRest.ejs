@@ -156,6 +156,12 @@
               </div>
             </div>
             <% }) %>
+
+            <input
+              type="hidden"
+              name="platosSeleccionadosJSON"
+              id="platosSeleccionadosJSON"
+            />
           </div>
 
           <!-- Precio final -->
@@ -175,14 +181,11 @@
               />
             </div>
 
-            <div>
-              <h4>Hora de Reserva:</h4>
-              <select name="hora">
-                <% horarios.forEach(hora => { %>
-                <option value="<%= hora %>"><%= hora %></option>
-                <% }) %>
-              </select>
-            </div>
+            <select id="hora" name="hora">
+              <% horarios.forEach(hora => { %>
+              <option value="<%= hora %>"><%= hora %></option>
+              <% }) %>
+            </select>
           </div>
 
           <button type="submit" class="btn btn-primary mt-3">Reservar</button>
@@ -196,9 +199,6 @@
     <script src="assets/vendor/glightbox/js/glightbox.min.js"></script>
     <script src="assets/vendor/purecounter/purecounter_vanilla.js"></script>
     <script src="assets/vendor/swiper/swiper-bundle.min.js"></script>
-
-    <!-- Main JS File -->
-    <script src="assets/js/main.js"></script>
     <script>
       document.addEventListener("DOMContentLoaded", function () {
         const searchInput = document.getElementById("searchInput");
@@ -207,6 +207,8 @@
           ".form-control[type='number']"
         );
         const form = document.querySelector("form");
+        const fechaInput = document.getElementById("fecha");
+        const horaSelect = document.querySelector("select[name='hora']");
 
         // Filtrado de platos
         searchInput.addEventListener("input", function () {
@@ -220,7 +222,7 @@
           }
         });
 
-        // Actualizar precio total cuando cambian las cantidades
+        // Cálculo del precio total
         cantidadInputs.forEach(function (input) {
           input.addEventListener("input", function () {
             let precioTotal = 0;
@@ -230,7 +232,7 @@
                 input
                   .closest(".card")
                   .querySelector(".card-text")
-                  .textContent.split("Precio: €")[1]
+                  .textContent.split("€")[1]
               );
               precioTotal += cantidad * precioPlato;
             });
@@ -240,18 +242,28 @@
           });
         });
 
-        // Verificar que el valor de la hora está correctamente configurado antes de enviar
+        // Submit del formulario
         form.addEventListener("submit", function (event) {
-          if (!document.getElementById("hora").value) {
+          if (!horaSelect.value) {
             event.preventDefault();
             alert("Por favor, selecciona una hora.");
+            return;
           }
-        });
-      });
-      document.addEventListener("DOMContentLoaded", function () {
-        const fechaInput = document.getElementById("fecha");
-        const horaSelect = document.querySelector("select[name='hora']");
 
+          const platosSeleccionados = {};
+          cantidadInputs.forEach(function (input) {
+            const cantidad = parseInt(input.value);
+            if (cantidad > 0) {
+              const id = input.id.split("_")[1];
+              platosSeleccionados[id] = cantidad;
+            }
+          });
+
+          document.getElementById("platosSeleccionadosJSON").value =
+            JSON.stringify(platosSeleccionados);
+        });
+
+        // Actualización de horarios
         fechaInput.addEventListener("change", function () {
           const fecha = fechaInput.value;
           const idRestaurante = "<%= id_restaurante %>";

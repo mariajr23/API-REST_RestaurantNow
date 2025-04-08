@@ -2,14 +2,15 @@
 <html lang="es">
   <head>
     <meta charset="utf-8" />
-    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-    <title>Index - Yummy Bootstrap Template</title>
-    <meta name="description" content="" />
-    <meta name="keywords" content="" />
+    <meta
+      name="viewport"
+      content="width=device-width, user-scalable=no, initial-scale=1.0, minimum-scale=1.0"
+    />
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
 
     <!-- Favicons -->
-    <link href="assets/img/favicon.png" rel="icon" />
-    <link href="assets/img/apple-touch-icon.png" rel="apple-touch-icon" />
+    <link href="../assets/img/favicon.png" rel="icon" />
+    <link href="../assets/img/apple-touch-icon.png" rel="apple-touch-icon" />
 
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com" rel="preconnect" />
@@ -21,30 +22,26 @@
 
     <!-- Vendor CSS Files -->
     <link
-      href="assets/vendor/bootstrap/css/bootstrap.min.css"
+      href="../assets/vendor/bootstrap/css/bootstrap.min.css"
       rel="stylesheet"
     />
     <link
-      href="assets/vendor/bootstrap-icons/bootstrap-icons.css"
+      href="../assets/vendor/bootstrap-icons/bootstrap-icons.css"
       rel="stylesheet"
     />
-    <link href="assets/vendor/aos/aos.css" rel="stylesheet" />
+    <link href="../assets/vendor/aos/aos.css" rel="stylesheet" />
     <link
-      href="assets/vendor/glightbox/css/glightbox.min.css"
+      href="../assets/vendor/glightbox/css/glightbox.min.css"
       rel="stylesheet"
     />
-    <link href="assets/vendor/swiper/swiper-bundle.min.css" rel="stylesheet" />
+    <link
+      href="../assets/vendor/swiper/swiper-bundle.min.css"
+      rel="stylesheet"
+    />
 
     <!-- Main CSS File -->
-    <link href="assets/css/main.css" rel="stylesheet" />
-
-    <!-- =======================================================
-  * Template Name: Yummy
-  * Template URL: https://bootstrapmade.com/yummy-bootstrap-restaurant-website-template/
-  * Updated: Aug 07 2024 with Bootstrap v5.3.3
-  * Author: BootstrapMade.com
-  * License: https://bootstrapmade.com/license/
-  ======================================================== -->
+    <link href="../assets/css/main.css" rel="stylesheet" />
+    <link href="../assets/css/estilos.css" rel="stylesheet" />
   </head>
   <body class="index-page">
     <header id="header" class="header d-flex align-items-center sticky-top">
@@ -87,44 +84,103 @@
             </li>
             <% } %>
           </ul>
+          <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
         </nav>
-
         <a class="btn-getstarted" href="/restaurantes">Reservar</a>
       </div>
     </header>
     <main>
-      <!-- Navegación y demás contenido -->
-      <div class="container">
-        <h2>Mis Pedidos</h2>
-        <table class="table table-striped">
-          <thead>
-            <tr>
-              <th>Nombre Restaurante</th>
-              <th>Fecha</th>
-              <th>Hora</th>
-              <th>Estado</th>
-              <th>Precio Total</th>
-            </tr>
-          </thead>
-          <tbody id="reservationsTableBody">
-            <% if (reservas && reservas.length > 0) { %> <%
-            reservas.forEach(reserva => { %>
-            <tr>
-              <td><%= reserva.nombre_restaurante %></td>
-              <td><%= reserva.fecha %></td>
-              <td><%= reserva.hora %></td>
-              <td><%= reserva.estado %></td>
-              <td>$<%= (reserva.precio_total || 0).toFixed(2) %></td>
-            </tr>
-            <% }); %> <% } else { %>
-            <tr>
-              <td colspan="5" class="text-center">No tienes reservas.</td>
-            </tr>
-            <% } %>
-          </tbody>
-        </table>
+      <div class="container mt-4">
+        <h2 class="mb-4 text-center">Mis Pedidos</h2>
+        <div class="table-responsive">
+          <table
+            class="table table-striped table-hover table-bordered shadow-sm"
+          >
+            <thead class="table-dark">
+              <tr>
+                <th>Nombre Restaurante</th>
+                <th>Fecha</th>
+                <th>Hora</th>
+                <th>Estado</th>
+                <th>Precio Total</th>
+              </tr>
+            </thead>
+            <tbody id="reservationsTableBody">
+              <% if (reservas && reservas.length > 0) { %> <%
+              reservas.forEach(reserva => { %>
+              <tr>
+                <td><%= reserva.nombre_restaurante %></td>
+                <td><%= reserva.fecha %></td>
+                <td><%= reserva.hora %></td>
+                <td>
+                  <span
+                    class="badge <%= reserva.estado === 'Aceptada' ? 'bg-success text-white' : reserva.estado === 'Pendiente' ? 'bg-warning text-dark' : reserva.estado === 'Cancelada' ? 'bg-danger text-white' : 'bg-secondary' %>"
+                  >
+                    <%= reserva.estado %>
+                  </span>
+                </td>
+                <td class="fw-bold">
+                  $<%= (reserva.precio_total || 0).toFixed(2) %>
+                </td>
+              </tr>
+              <% }); %> <% } else { %>
+              <tr>
+                <td colspan="5" class="text-center text-muted">
+                  No tienes reservas.
+                </td>
+              </tr>
+              <% } %>
+            </tbody>
+          </table>
+        </div>
       </div>
     </main>
-    <script src="/node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+
+    <footer>
+      <article class="footer">
+        <footer
+          class="d-flex flex-wrap justify-content-between align-items-center py-3 my-4 border-top"
+        >
+          <article class="col-md-4 d-flex items-center">
+            <a
+              href="/"
+              class="mb-3 me-2 mb-md-0 text-muted text-decoration-none lh-1"
+            >
+              <img class="footer-logo" src="/images/Logo.png" alt="Logo" />
+            </a>
+            <span class="text-muted">&copy; 2023 RestaurantNow</span>
+          </article>
+          <ul class="nav col-md-4 justify-content-end list-unstyled d-flex">
+            <li class="ms-3">
+              <a
+                class="text-muted"
+                href="https://www.instagram.com/you_drive12/"
+                ><svg class="bi" width="24" height="24">
+                  <use xlink:href="#instagram" /></svg
+              ></a>
+            </li>
+            <li class="ms-3">
+              <a
+                class="text-muted"
+                href="https://www.facebook.com/youdrive2/?show_switched_toast=0&show_invite_to_follow=0&show_switched_tooltip=0&show_podcast_settings=0&show_community_transition=0&show_community_review_changes=0&show_follower_visibility_disclosure=0"
+                ><svg class="bi" width="24" height="24">
+                  <use xlink:href="#facebook" /></svg
+              ></a>
+            </li>
+          </ul>
+        </footer>
+      </article>
+    </footer>
+    <!-- Vendor JS Files -->
+    <script src="../assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="../assets/vendor/php-email-form/validate.js"></script>
+    <script src="../assets/vendor/aos/aos.js"></script>
+    <script src="../assets/vendor/glightbox/js/glightbox.min.js"></script>
+    <script src="../assets/vendor/purecounter/purecounter_vanilla.js"></script>
+    <script src="../assets/vendor/swiper/swiper-bundle.min.js"></script>
+
+    <!-- Main JS File -->
+    <script src="../assets/js/main.js"></script>
+    <script src="../node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
   </body>
 </html>
