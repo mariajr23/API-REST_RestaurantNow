@@ -1649,7 +1649,22 @@ router.post("/capture-order", async (req, res) => {
             return res.status(404).json({ message: "Reserva no encontrada" });
           }
 
-          const queryUser = `SELECT nombre, email FROM usuarios WHERE id_usuario = ?`;
+          // Eliminar reservas con id_pago NULL
+          conexion.query(
+            "DELETE FROM reservas WHERE id_pago IS NULL",
+            (deleteErr, deleteResult) => {
+              if (deleteErr) {
+                console.error(
+                  "Error al eliminar reservas sin pago:",
+                  deleteErr
+                );
+              } else {
+                console.log(
+                  `Reservas sin pago eliminadas: ${deleteResult.affectedRows}`
+                );
+              }
+            }
+          );
 
           // Enviar email de pago confirmado
           conexion.query(
