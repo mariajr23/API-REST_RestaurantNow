@@ -142,6 +142,9 @@
               <img class="mb-4" src="assets/img/Logo.png" alt="logo" />
             </div>
             <h1 class="h3 mb-3 fw-normal">Iniciar sesión como Usuario</h1>
+            <% if (error) { %>
+            <div class="alert alert-danger" role="alert"><%= error %></div>
+            <% } %>
             <div class="form-floating">
               <label for="floatingInput">Email</label>
               <input
@@ -197,6 +200,9 @@
             </div>
 
             <h1 class="h3 mb-3 fw-normal">Iniciar sesión como Restaurante</h1>
+            <% if (error) { %>
+            <div class="alert alert-danger" role="alert"><%= error %></div>
+            <% } %>
             <div class="form-floating">
               <label for="floatingInputRestaurante">Email</label>
               <input

@@ -65,16 +65,23 @@
               <td><%= reserva.hora %></td>
               <td><%= reserva.platos %></td>
               <td>
-                <a
-                  href="/restaurante/reservas/aceptar/<%= reserva.id_reserva %>"
-                  class="btn btn-success"
-                  >Aceptar</a
+                <!-- Formulario para aceptar la reserva -->
+                <form
+                  action="/restaurante/reservas/aceptar/<%= reserva.id_reserva %>"
+                  method="POST"
+                  style="display: inline"
                 >
-                <a
-                  href="/restaurante/reservas/rechazar/<%= reserva.id_reserva %>"
-                  class="btn btn-danger"
-                  >Rechazar</a
+                  <button type="submit" class="btn btn-success">Aceptar</button>
+                </form>
+
+                <!-- Formulario para rechazar la reserva -->
+                <form
+                  action="/restaurante/reservas/rechazar/<%= reserva.id_reserva %>"
+                  method="POST"
+                  style="display: inline"
                 >
+                  <button type="submit" class="btn btn-danger">Rechazar</button>
+                </form>
               </td>
             </tr>
             <% }) %> <% } else { %>

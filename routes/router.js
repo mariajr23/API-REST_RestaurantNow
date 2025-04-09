@@ -23,7 +23,7 @@ generarHorariosMensuales();
 function obtenerRestaurantes() {
   return new Promise((resolve, reject) => {
     conexion.query(
-      "SELECT id_restaurante FROM restaurantes WHERE estado = 'aceptado' OR 'pendiente'",
+      "SELECT id_restaurante FROM restaurantes",
       (error, results) => {
         if (error) {
           reject(error);
@@ -232,7 +232,8 @@ router.get("/buscar-restaurantes", (req, res) => {
 });
 
 router.get("/login", (req, res) => {
-  res.render("login");
+  const error = req.query.error;
+  res.render("login", { error });
 });
 
 router.post("/login", async (req, res) => {
@@ -240,21 +241,122 @@ router.post("/login", async (req, res) => {
 
   try {
     const usuario = await User.findOne({ where: { email } });
-    if (!usuario)
-      return res.status(404).json({ error: "Usuario no encontrado" });
+    if (!usuario) return res.redirect("/login?error=Usuario no encontrado");
 
     const match = await bcrypt.compare(contrasena, usuario.contrasena);
-    if (!match) return res.status(401).json({ error: "Contraseña incorrecta" });
-
+    if (!match) {
+      return res.redirect("/login?error=Contraseña incorrecta");
+    }
     const token = jwt.sign({ id: usuario.id, rol: usuario.rol }, "SECRET_KEY", {
       expiresIn: "1h",
     });
 
-    res.status(200).json({ mensaje: "Login exitoso", token, rol: usuario.rol });
+    res.redirect("/user/perfil");
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Error al iniciar sesión" });
+    res.redirect("/login?error=Ocurrió un error al iniciar sesión");
   }
+});
+
+router.post("/iniciarsesion-restaurante", (req, res) => {
+  const { email, contrasena } = req.body;
+
+  const query =
+    "SELECT * FROM usuarios WHERE email = ? AND rol = 'restaurante'";
+
+  conexion.query(query, [email], (error, results) => {
+    if (error) {
+      console.error("Error en la consulta:", error);
+      return res.status(500).send("Error en el servidor");
+    }
+
+    if (results.length === 0) {
+      return res.render("login", {
+        error:
+          "Correo electrónico o contraseña incorrectos. ¿Estas seguro de estar en el login correcto?",
+      });
+    }
+
+    const user = results[0];
+
+    bcrypt.compare(contrasena, user.contrasena, (err, isMatch) => {
+      if (err) {
+        console.error("Error al comparar contraseñas:", err);
+        return res.status(500).send("Error en el servidor");
+      }
+
+      if (isMatch) {
+        req.session.user = {
+          id: user.id_usuario,
+          nombre: user.nombre,
+          telefono: user.telefono,
+          email: user.email,
+        };
+
+        console.log("Restaurante autenticado:", req.session.user);
+        verificarRestaurante(req, res);
+      } else {
+        return res.render("login", {
+          error:
+            "Correo electrónico o contraseña incorrectos. ¿Estas seguro de estar en el login correcto?",
+        });
+      }
+    });
+  });
+});
+
+router.post("/iniciarsesion-usuario", (req, res) => {
+  const { email, contrasena } = req.body;
+
+  const query =
+    "SELECT * FROM usuarios WHERE email = ? AND (rol = 'usuario' OR rol = 'admin')";
+
+  conexion.query(query, [email], (error, results) => {
+    if (error) {
+      console.error("Error en la consulta:", error);
+      return res.status(500).send("Error en el servidor");
+    }
+
+    if (results.length === 0) {
+      return res.render("login", {
+        error:
+          "Correo electrónico o contraseña incorrectos. ¿Estás intentando iniciar sesión como restaurante?",
+      });
+    }
+
+    const user = results[0];
+
+    bcrypt.compare(contrasena, user.contrasena, (err, isMatch) => {
+      if (err) {
+        console.error("Error al comparar contraseñas:", err);
+        return res.status(500).send("Error en el servidor");
+      }
+
+      if (isMatch) {
+        req.session.user = {
+          id: user.id_usuario,
+          nombre: user.nombre,
+          telefono: user.telefono,
+          email: user.email,
+        };
+
+        console.log("Usuario autenticado:", {
+          email: user.email,
+        });
+
+        if (user.email === "admin@admin.com") {
+          res.redirect("/admin/dashboard");
+        } else {
+          res.redirect("/restaurantes");
+        }
+      } else {
+        return res.render("login", {
+          error:
+            "Correo electrónico o contraseña incorrectos. ¿Estás intentando iniciar sesión como restaurante?",
+        });
+      }
+    });
+  });
 });
 
 router.get("/registro", (req, res) => {
@@ -318,7 +420,7 @@ router.post("/registrar/restaurante", async (req, res) => {
           resultsUsuario.insertId
         );
 
-        await sendAccountCreationEmail(email, nombre);
+        await emailService.sendAccountCreationEmail(email, nombre);
 
         return res.redirect("/login");
       }
@@ -327,51 +429,6 @@ router.post("/registrar/restaurante", async (req, res) => {
     console.error("Error en el proceso de registro:", error);
     return res.status(500).json({ error: "Error al registrar el restaurante" });
   }
-});
-
-router.post("/iniciarsesion-restaurante", (req, res) => {
-  const { email, contrasena } = req.body;
-
-  const query =
-    "SELECT * FROM usuarios WHERE email = ? AND rol = 'restaurante'";
-
-  conexion.query(query, [email], (error, results) => {
-    if (error) {
-      console.error("Error en la consulta:", error);
-      return res.status(500).send("Error en el servidor");
-    }
-
-    if (results.length === 0) {
-      return res
-        .status(401)
-        .send("Correo electrónico o contraseña incorrectos");
-    }
-
-    const user = results[0];
-
-    bcrypt.compare(contrasena, user.contrasena, (err, isMatch) => {
-      if (err) {
-        console.error("Error al comparar contraseñas:", err);
-        return res.status(500).send("Error en el servidor");
-      }
-
-      if (isMatch) {
-        req.session.user = {
-          id: user.id_usuario,
-          nombre: user.nombre,
-          email: user.email,
-          telefono: user.telefono,
-        };
-
-        console.log("Restaurante autenticado:", req.session.user);
-        verificarRestaurante(req, res);
-      } else {
-        return res
-          .status(401)
-          .send("Correo electrónico o contraseña incorrectos");
-      }
-    });
-  });
 });
 
 router.get("/restaurante/crear", (req, res) => {
@@ -471,16 +528,16 @@ router.post("/restaurante/crear", isAuthenticated, (req, res) => {
         conexion.query(
           queryHorario,
           [id_restaurante, dias_semana, hora_inicio, hora_fin, intervalo],
-          (err) => {
+          async (err) => {
             if (err) {
               console.error("Error al registrar el horario:", err);
               return res
                 .status(500)
                 .send("Error al registrar el horario del restaurante");
             }
+            await generarHorariosMensuales();
 
             console.log("Horario registrado correctamente.");
-            generarHorariosMensuales();
             res.redirect("/restaurante/dashboard");
           }
         );
@@ -547,86 +604,126 @@ router.get("/restaurante/reservas", isAuthenticated, (req, res) => {
     }
   );
 });
-router.get("/restaurante/reservas/aceptar/:id_reserva", (req, res) => {
-  const { id_reserva } = req.params;
+// Aceptar reserva
+router.post(
+  "/restaurante/reservas/aceptar/:id_reserva",
+  isAuthenticated,
+  (req, res) => {
+    const { id_reserva } = req.params;
 
-  conexion.query(
-    "SELECT estado FROM reservas WHERE id_reserva = ?",
-    [id_reserva],
-    (err, results) => {
-      if (err) {
-        console.error(err);
-        return res
-          .status(500)
-          .send("Error al obtener el estado de la reserva.");
-      }
+    conexion.query(
+      "SELECT estado, id_usuario FROM reservas WHERE id_reserva = ?",
+      [id_reserva],
+      (err, results) => {
+        if (err) {
+          console.error(err);
+          return res
+            .status(500)
+            .send("Error al obtener el estado de la reserva.");
+        }
 
-      if (results.length === 0) {
-        return res.status(404).send("Reserva no encontrada.");
-      }
+        if (results.length === 0) {
+          return res.status(404).send("Reserva no encontrada.");
+        }
 
-      const estado = results[0].estado;
-      if (estado === "confirmada" || estado === "cancelada") {
-        return res
-          .status(400)
-          .send("La reserva ya ha sido procesada y no puede modificarse.");
-      }
+        const estado = results[0].estado;
+        const id_usuario = results[0].id_usuario; // Obtenemos el id_usuario de la reserva
+        if (estado === "confirmada" || estado === "cancelada") {
+          return res
+            .status(400)
+            .send("La reserva ya ha sido procesada y no puede modificarse.");
+        }
 
-      conexion.query(
-        "UPDATE reservas SET estado = 'confirmada' WHERE id_reserva = ?",
-        [id_reserva],
-        (err, result) => {
-          if (err) {
-            console.error(err);
-            return res.status(500).send("Error al aceptar la reserva.");
-          }
-
-          conexion.query(
-            "SELECT email, nombre FROM usuarios WHERE id_usuario = ?",
-            [id_usuario],
-            async (errUser, userResults) => {
-              if (!errUser && userResults.length > 0) {
-                const { email, nombre } = userResults[0];
-                await emailService.sendReservationStatusEmail(
-                  email,
-                  nombre,
-                  true
-                );
-              }
+        conexion.query(
+          "UPDATE reservas SET estado = 'confirmada' WHERE id_reserva = ?",
+          [id_reserva],
+          (err, result) => {
+            if (err) {
+              console.error(err);
+              return res.status(500).send("Error al aceptar la reserva.");
             }
-          );
 
-          res.redirect("/restaurante/reservas");
-        }
-      );
-    }
-  );
-});
-
-router.get("/restaurante/reservas/rechazar/:id_reserva", (req, res) => {
-  const { id_reserva } = req.params;
-  conexion.query(
-    "UPDATE reservas SET estado = 0 WHERE id_reserva = ?",
-    [id_reserva],
-    (err, result) => {
-      if (err) {
-        console.error(err);
-        return res.status(500).send("Error al aceptar la reserva.");
-      }
-      conexion.query(
-        "SELECT email, nombre FROM usuarios WHERE id_usuario = ?",
-        [id_usuario],
-        async (errUser, userResults) => {
-          if (!errUser && userResults.length > 0) {
-            const { email, nombre } = userResults[0];
-            await emailService.sendReservationStatusEmail(email, nombre, false);
+            // Ahora buscamos el email del usuario asociado con la reserva
+            conexion.query(
+              "SELECT email, nombre FROM usuarios WHERE id_usuario = ?",
+              [id_usuario],
+              async (errUser, userResults) => {
+                if (!errUser && userResults.length > 0) {
+                  const { email, nombre } = userResults[0];
+                  // Aquí envías el email de confirmación
+                  await emailService.sendReservationStatusEmail(
+                    email,
+                    nombre,
+                    true // O "false" si fuera el caso de rechazo
+                  );
+                }
+              }
+            );
+            res.redirect("/restaurante/reservas");
           }
+        );
+      }
+    );
+  }
+);
+
+// Rechazar reserva
+router.post(
+  "/restaurante/reservas/rechazar/:id_reserva",
+  isAuthenticated,
+  (req, res) => {
+    const { id_reserva } = req.params;
+
+    conexion.query(
+      "SELECT id_usuario FROM reservas WHERE id_reserva = ?",
+      [id_reserva],
+      (err, results) => {
+        if (err) {
+          console.error(err);
+          return res
+            .status(500)
+            .send("Error al obtener el usuario de la reserva.");
         }
-      );
-      res.redirect("/restaurante/reservas");
-    }
-  );
-});
+
+        if (results.length === 0) {
+          return res.status(404).send("Reserva no encontrada.");
+        }
+
+        const id_usuario = results[0].id_usuario;
+
+        conexion.query(
+          "UPDATE reservas SET estado = 'cancelada' WHERE id_reserva = ?",
+          [id_reserva],
+          (err, result) => {
+            if (err) {
+              console.error(err);
+              return res.status(500).send("Error al rechazar la reserva.");
+            }
+
+            // Ahora buscamos el email del usuario asociado con la reserva
+            conexion.query(
+              "SELECT email, nombre FROM usuarios WHERE id_usuario = ?",
+              [id_usuario],
+              async (errUser, userResults) => {
+                if (!errUser && userResults.length > 0) {
+                  const { email, nombre } = userResults[0];
+                  // Aquí envías el email de rechazo
+                  await emailService.sendReservationStatusEmail(
+                    email,
+                    nombre,
+                    false // "false" para el rechazo
+                  );
+                }
+              }
+            );
+            res.redirect("/restaurante/reservas");
+          }
+        );
+      }
+    );
+  }
+);
+
 //Gestion de platos
 router.get("/restaurante/platos", isAuthenticated, async (req, res) => {
   if (!req.session || !req.session.user) {
@@ -862,98 +959,47 @@ const verificarRestaurante = (req, res, next) => {
   });
 };
 
-router.post("/iniciarsesion-usuario", (req, res) => {
-  const { email, contrasena } = req.body;
-
-  const query =
-    "SELECT * FROM usuarios WHERE email = ? AND (rol = 'usuario' OR rol = 'admin')";
-
-  conexion.query(query, [email], (error, results) => {
-    if (error) {
-      console.error("Error en la consulta:", error);
-      return res.status(500).send("Error en el servidor");
-    }
-
-    if (results.length === 0) {
-      return res
-        .status(401)
-        .send("Correo electrónico o contraseña incorrectos");
-    }
-
-    const user = results[0];
-
-    bcrypt.compare(contrasena, user.contrasena, (err, isMatch) => {
-      if (err) {
-        console.error("Error al comparar contraseñas:", err);
-        return res.status(500).send("Error en el servidor");
-      }
-
-      if (isMatch) {
-        req.session.user = {
-          id: user.id_usuario,
-          nombre: user.nombre,
-          telefono: user.telefono,
-          email: user.email,
-        };
-
-        console.log("Usuario autenticado:", {
-          email: user.email,
-        });
-
-        if (user.email === "admin@admin.com") {
-          res.redirect("/admin/dashboard");
-        } else {
-          res.redirect("/restaurantes");
-        }
-      } else {
-        return res
-          .status(401)
-          .send("Correo electrónico o contraseña incorrectos");
-      }
-    });
-  });
-});
 // Ruta para mostrar la vista de recuperar contraseña
 router.get("/recuperar-password", (req, res) => {
-  res.render("recuperar-password"); // Renderiza el archivo HTML de la vista
+  res.render("recuperar-password", { mensaje: null, tipo: null });
 });
 
 router.post("/recuperar-password", async (req, res) => {
   const { email } = req.body;
 
   // Verificar si el email existe en la base de datos
-  const [results] = await conexion.query(
+  const results = await conexion.query(
     "SELECT * FROM usuarios WHERE email = ?",
     [email]
   );
 
   if (results.length === 0) {
-    return res.status(404).send("Correo electrónico no registrado");
+    return res.render("recuperar-password", {
+      mensaje: "Correo electrónico no registrado",
+      tipo: "danger",
+    });
   }
 
   const userId = results.id_usuario;
 
-  // Guardar el id_usuario en la sesión
   req.session.userId = userId;
 
-  // Generar un token de recuperación de contraseña
   const token = crypto.randomBytes(20).toString("hex");
   const expiry = new Date(Date.now() + 3600000); // Expira en 1 hora
 
-  // Guardar el token en la base de datos junto con su fecha de expiración
   await conexion.query(
     "UPDATE usuarios SET resetToken = ?, resetTokenExpires = ? WHERE email = ?",
     [token, expiry, email]
   );
 
-  // Crear el enlace de recuperación
   const resetUrl = `http://localhost:3000/resetar-password?token=${token}`;
 
-  // Enviar un correo al usuario con el enlace de recuperación de contraseña
   await emailService.sendPasswordResetEmail(email, token);
 
-  // Responder con un mensaje indicando que el email fue enviado
-  res.send("Enlace de recuperación enviado al correo electrónico");
+  res.render("recuperar-password", {
+    mensaje: "Enlace de recuperación enviado al correo electrónico",
+    tipo: "success",
+  });
 });
 
 // Ruta GET para mostrar el formulario de restablecimiento de contraseña
@@ -1035,7 +1081,12 @@ router.get("/admin/dashboard", (req, res) => {
 
 router.get("/admin/adminRest", (req, res) => {
   conexion.query(
-    "SELECT * FROM restaurantes WHERE estado = 'pendiente'",
+    `
+    SELECT r.id_restaurante, r.nombre, r.telefono, r.direccion, u.email
+    FROM restaurantes r
+    JOIN usuarios u ON r.id_usuario = u.id_usuario
+    WHERE r.estado = 'pendiente'
+    `,
     (error, solicitudesPendientes) => {
       if (error) {
         console.error("Error en la consulta:", error);
@@ -1044,7 +1095,12 @@ router.get("/admin/adminRest", (req, res) => {
       console.log(solicitudesPendientes);
 
       conexion.query(
-        "SELECT * FROM restaurantes WHERE estado = 'aceptado'",
+        `
+        SELECT r.id_restaurante, r.nombre, r.telefono, r.direccion, u.email
+        FROM restaurantes r
+        JOIN usuarios u ON r.id_usuario = u.id_usuario
+        WHERE r.estado = 'aceptado'
+        `,
         (error, restaurantesAceptados) => {
           if (error) {
             console.error("Error en la consulta:", error);
@@ -1110,29 +1166,46 @@ router.get("/admin/restaurantes/aceptar/:id", (req, res) => {
 router.get("/admin/restaurantes/rechazar/:id", (req, res) => {
   const restauranteId = req.params.id;
 
-  const queryActualizarRestaurante =
-    "UPDATE restaurantes SET estado = ? WHERE id_restaurante = ?";
+  // Obtener el correo y el nombre del usuario asociado al restaurante
+  const queryObtenerRestaurante = `
+    SELECT r.nombre, u.email 
+    FROM restaurantes r 
+    JOIN usuarios u ON r.id_usuario = u.id_usuario 
+    WHERE r.id_restaurante = ?`;
 
-  conexion.query(
-    queryActualizarRestaurante,
-    ["rechazado", restauranteId],
-    async (err, result) => {
-      if (err) {
-        console.error("Error al rechazar restaurante:", err);
-        return res.status(500).send("Error al procesar la solicitud");
-      }
-
-      // Si no se actualizó ninguna fila, significa que el ID no existe
-      if (result.affectedRows === 0) {
-        console.log("No se encontró el restaurante con ese ID.");
-        return res.status(404).send("Restaurante no encontrado");
-      }
-      await emailService.sendRestaurantApprovalEmail(email, nombre, false);
-
-      console.log("Restaurante rechazado correctamente");
-      res.redirect("/admin/adminRest"); // Redirige a la página de administración
+  conexion.query(queryObtenerRestaurante, [restauranteId], (err, rows) => {
+    if (err) {
+      console.error("Error al obtener datos del restaurante:", err);
+      return res.status(500).send("Error al obtener datos del restaurante");
     }
-  );
+    if (rows.length === 0) {
+      return res.status(404).send("Restaurante no encontrado");
+    }
+
+    const { nombre, email } = rows[0];
+
+    const queryActualizarRestaurante =
+      "UPDATE restaurantes SET estado = ? WHERE id_restaurante = ?";
+
+    conexion.query(
+      queryActualizarRestaurante,
+      ["rechazado", restauranteId],
+      async (err, result) => {
+        if (err) {
+          console.error("Error al aceptar restaurante:", err);
+          return res.status(500).send("Error al procesar la solicitud");
+        }
+        if (result.affectedRows === 0) {
+          return res.status(404).send("Restaurante no encontrado");
+        }
+
+        // Enviar email de confirmación
+        await emailService.sendRestaurantApprovalEmail(email, nombre, false);
+
+        res.redirect("/admin/adminRest");
+      }
+    );
+  });
 });
 
 router.get("/admin/adminUser", isAdmin, (req, res) => {
@@ -1455,22 +1528,6 @@ router.get("/vistaRest", (req, res) => {
     }
   );
 });
-
-router.get("/resumenReserva", (req, res) => {
-  console.log(
-    "PayPal Client ID desde router.js:",
-    process.env.PAYPAL_CLIENT_ID
-  );
-  console.log("restaurante id:", req.query.restaurant);
-  res.render("resumenReserva", {
-    paypalClientId: process.env.PAYPAL_CLIENT_ID,
-    id_restaurante: req.query.restaurant,
-    fecha: req.query.fecha,
-    hora: req.query.hora,
-    platos: platos,
-    total: total,
-  });
-});
 router.post("/reservar", isAuthenticated, (req, res) => {
   try {
     const { fecha, hora, id_restaurante } = req.body;
@@ -1562,6 +1619,23 @@ router.post("/reservar", isAuthenticated, (req, res) => {
                   }
                 );
               });
+              const actualizarHorarioQuery = `
+                UPDATE horarios_generados 
+                SET disponible = 0 
+                WHERE id_restaurante = ? AND fecha = ? AND hora = ?
+              `;
+              conexion.query(
+                actualizarHorarioQuery,
+                [id_restauranteFinal, fecha, hora],
+                (errorActualizarHorario) => {
+                  if (errorActualizarHorario) {
+                    console.error(
+                      "Error al actualizar el horario en horarios_generados:",
+                      errorActualizarHorario
+                    );
+                  }
+                }
+              );
 
               // Renderizar la vista de resumen de la reserva
               res.render("resumenReserva", {
@@ -1583,6 +1657,21 @@ router.post("/reservar", isAuthenticated, (req, res) => {
     console.error("Error en la ruta /reservar:", error);
     res.status(500).send("Error del servidor.");
   }
+});
+router.get("/resumenReserva", (req, res) => {
+  console.log(
+    "PayPal Client ID desde router.js:",
+    process.env.PAYPAL_CLIENT_ID
+  );
+  console.log("restaurante id:", req.query.restaurant);
+  res.render("resumenReserva", {
+    paypalClientId: process.env.PAYPAL_CLIENT_ID,
+    id_restaurante: req.query.restaurant,
+    fecha: req.query.fecha,
+    hora: req.query.hora,
+    platos: platos,
+    total: total,
+  });
 });
 
 function calcularPrecioTotal(platosArray, callback) {
@@ -1696,10 +1785,10 @@ router.post("/capture-order", async (req, res) => {
 });
 
 router.get("/logout", (req, res) => {
-  res.clearCookie("token");
   req.session.destroy(() => {
     res.redirect("/");
   });
+  res.clearCookie("connect.sid");
   console.log("Usuario logout");
 });
 
